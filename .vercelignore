@@ -1,0 +1,8 @@
+PD list.xlsx
+IMG_*.JPG
+IMG_*.PNG
+verification-*.png
+assets/*-source.png
+tmp/
+.DS_Store
+dev-server.js

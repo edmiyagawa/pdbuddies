@@ -1,0 +1,16 @@
+.DS_Store
+.env
+.env.*
+.vercel
+node_modules/
+tmp/
+
+# Original/private source files
+PD list.xlsx
+IMG_*.JPG
+IMG_*.PNG
+
+# Local verification screenshots and generated working files
+verification-*.png
+assets/*-source.png
+dev-server.js

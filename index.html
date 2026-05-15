@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Disney Adventure Pixie Dust Planner | 21-25 May 2026</title>
+    <link rel="stylesheet" href="./styles.css?v=characters-bg-1" />
+  </head>
+  <body>
+    <div class="character-backdrop" id="characterBackdrop" aria-hidden="true"></div>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Disney Adventure · 21-25 May 2026</p>
+        <h1>Pixie Dusting Planner</h1>
+      </div>
+      <nav class="tabs" aria-label="App views">
+        <button class="tab is-active" data-view="route" type="button">Route</button>
+        <button class="tab" data-view="gifts" type="button">Gifts</button>
+        <button class="tab" data-view="events" type="button">Events</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="toolbar" aria-label="Filters">
+        <label>
+          <span>Search</span>
+          <input id="searchInput" type="search" placeholder="room, character, theme, location" />
+        </label>
+        <label>
+          <span>Deck</span>
+          <select id="deckFilter"></select>
+        </label>
+        <label>
+          <span>Character group</span>
+          <select id="familyFilter"></select>
+        </label>
+        <label>
+          <span>Ship section</span>
+          <select id="sectionFilter"></select>
+        </label>
+        <button class="ghost" id="printButton" type="button">Print view</button>
+      </section>
+
+      <section class="view is-visible" id="routeView" aria-label="Route planner">
+        <section class="hero-strip" aria-label="Cruise summary">
+          <div class="ship-art" aria-hidden="true">
+            <img src="./assets/hero-ship.jpg" alt="" />
+          </div>
+          <div class="hero-copy">
+            <p class="eyebrow">Pixie Dusting made easier for the sailing group</p>
+            <h2>Disney Adventure Pixie Dusting, 21-25 May 2026.</h2>
+            <p>Use the live stateroom list to plan delivery routes, prepare themed gifts, and turn door visits into family-friendly fun for children and parents onboard.</p>
+          </div>
+          <div class="hero-metrics" id="heroMetrics"></div>
+        </section>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Route planner</p>
+            <h2>Deck by deck delivery run</h2>
+          </div>
+          <p>Choose rooms or other locations to get deck-plan-aware walking steps using FWD/AFT position, port/starboard side, venues, and lift banks.</p>
+        </div>
+        <div class="route-finder" aria-label="Room to room walking route">
+          <div class="route-finder-controls">
+            <div class="route-map-frame" id="routeMapPanel"></div>
+            <div class="route-select-row">
+              <div class="route-target">
+                <label>
+                  <span>From type</span>
+                  <select id="routeFromTypeSelect"></select>
+                </label>
+                <label>
+                  <span>From</span>
+                  <select id="routeFromSelect"></select>
+                </label>
+              </div>
+              <button class="ghost icon-button" id="swapRouteButton" type="button" aria-label="Swap route direction" title="Swap route direction">Swap</button>
+              <div class="route-target">
+                <label>
+                  <span>To type</span>
+                  <select id="routeToTypeSelect"></select>
+                </label>
+                <label>
+                  <span>To</span>
+                  <select id="routeToSelect"></select>
+                </label>
+              </div>
+              <button class="ghost" id="clearRouteButton" type="button">Clear</button>
+            </div>
+          </div>
+          <div class="walking-route-panel" id="walkingRoutePanel"></div>
+        </div>
+        <div class="section-heading route-ship-heading">
+          <div>
+            <p class="eyebrow">3D route view</p>
+            <h2>See the same route on the ship</h2>
+          </div>
+          <p>The 3D view follows the same From and To choices above, so the walking steps and ship path stay together.</p>
+        </div>
+        <div class="ship3d-layout route-ship3d-layout">
+          <div class="ship3d-stage" id="ship3dMount" aria-label="Interactive 3D ship model"></div>
+          <aside class="ship3d-panel">
+            <div id="ship3dStatus"></div>
+            <button class="ghost" id="resetShip3dButton" type="button">Reset camera</button>
+          </aside>
+        </div>
+        <div class="route-layout">
+          <aside class="deck-rail" id="deckRail"></aside>
+          <div class="route-list" id="routeList"></div>
+          <aside class="inspector" id="routeInspector"></aside>
+        </div>
+      </section>
+
+      <section class="view" id="giftsView" aria-label="Gift matchmaker">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Gift matchmaker</p>
+            <h2>Pack by character world, then add celebration boosters</h2>
+          </div>
+          <p>Quantities include a small buffer. Suggestions are themed from official Disney Cruise and Disney Store shopping categories, not live inventory.</p>
+        </div>
+        <div class="section-visual gift-visual" aria-hidden="true">
+          <img src="./assets/gift-flatlay.jpg" alt="" />
+        </div>
+        <div class="gift-grid" id="giftGrid"></div>
+        <div class="packing-layout">
+          <section class="packing-list">
+            <div class="mini-heading">
+              <h3>Room packing slips</h3>
+              <button class="ghost" id="markPackedButton" type="button">Mark visible packed</button>
+            </div>
+            <div id="packingList"></div>
+          </section>
+          <aside class="boosters-panel" id="boostersPanel"></aside>
+        </div>
+      </section>
+
+      <section class="view" id="eventsView" aria-label="Special events tracker">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Special events</p>
+            <h2>Track celebrations before each Pixie Dust run</h2>
+          </div>
+          <p>See rooms tagged for birthdays, anniversaries, and first cruises so celebration boosters can be packed and delivered with the right route batch.</p>
+        </div>
+        <div class="event-summary-grid" id="eventSummaryGrid"></div>
+        <div class="event-lanes" id="eventLanes"></div>
+      </section>
+
+    </main>
+
+    <script src="./config.js"></script>
+    <script src="./app.js?v=characters-bg-1"></script>
+  </body>
+</html>
