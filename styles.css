@@ -139,6 +139,16 @@ h3 {
   box-shadow: 0 8px 20px rgba(16, 42, 67, 0.18);
 }
 
+body:has(#giftsView.is-visible) .tab.is-active {
+  color: white;
+  background: #0c77a8;
+  box-shadow: 0 8px 20px rgba(12, 119, 168, 0.2);
+}
+
+body:has(#giftsView.is-visible) .tabs {
+  border-color: rgba(12, 119, 168, 0.2);
+}
+
 .ghost {
   padding: 0 16px;
   color: var(--navy);
@@ -427,6 +437,104 @@ select:focus {
 
 #routeView .ghost:hover {
   background: rgba(218, 175, 210, 0.46);
+}
+
+#giftsView {
+  --gifts-ice: #d5d9ea;
+  --gifts-frost: #86b3cb;
+  --gifts-snow: #82d4ed;
+  --gifts-aqua: #3abae3;
+  --gifts-deep: #0c77a8;
+  --gifts-ink: #0d3954;
+  --gifts-shadow: 0 16px 36px rgba(12, 119, 168, 0.14);
+  padding: clamp(16px, 3vw, 28px);
+  background:
+    linear-gradient(135deg, rgba(213, 217, 234, 0.88), rgba(130, 212, 237, 0.28) 52%, rgba(58, 186, 227, 0.16)),
+    #f8fcff;
+  border: 1px solid rgba(12, 119, 168, 0.18);
+  box-shadow: var(--gifts-shadow);
+}
+
+#giftsView .eyebrow,
+#giftsView .route-meta {
+  color: var(--gifts-deep);
+}
+
+#giftsView .section-heading h2,
+#giftsView .room,
+#giftsView .kit-count strong,
+#giftsView .boosters-panel h3,
+#giftsView .mini-heading h3 {
+  color: var(--gifts-ink);
+}
+
+#giftsView .section-heading p:last-child,
+#giftsView .subtext,
+#giftsView .card-line,
+#giftsView .kit ul,
+#giftsView .boosters-panel ul {
+  color: #486477;
+}
+
+#giftsView .section-visual,
+#giftsView .kit,
+#giftsView .packing-list,
+#giftsView .boosters-panel {
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(12, 119, 168, 0.16);
+  box-shadow: var(--gifts-shadow);
+}
+
+#giftsView .section-visual::after {
+  background: linear-gradient(90deg, rgba(213, 217, 234, 0.08), rgba(130, 212, 237, 0.36));
+}
+
+#giftsView .kit::before {
+  background: linear-gradient(180deg, var(--gifts-aqua), var(--gifts-deep));
+}
+
+#giftsView .kit:nth-child(5n + 1)::before { background: var(--gifts-ice); }
+#giftsView .kit:nth-child(5n + 2)::before { background: var(--gifts-frost); }
+#giftsView .kit:nth-child(5n + 3)::before { background: var(--gifts-snow); }
+#giftsView .kit:nth-child(5n + 4)::before { background: var(--gifts-aqua); }
+#giftsView .kit:nth-child(5n + 5)::before { background: var(--gifts-deep); }
+
+#giftsView .packing-card {
+  border-color: rgba(12, 119, 168, 0.12);
+}
+
+#giftsView .packing-card:hover {
+  background: rgba(213, 217, 234, 0.22);
+}
+
+#giftsView .badge {
+  color: var(--gifts-ink);
+  background: rgba(130, 212, 237, 0.2);
+  border-color: rgba(12, 119, 168, 0.18);
+}
+
+#giftsView .item-chip {
+  color: var(--gifts-ink);
+  background: rgba(134, 179, 203, 0.22);
+}
+
+#giftsView .ghost {
+  color: var(--gifts-ink);
+  border-color: rgba(12, 119, 168, 0.18);
+}
+
+#giftsView .ghost:hover {
+  background: rgba(130, 212, 237, 0.22);
+}
+
+#giftsView .status-toggle {
+  color: var(--gifts-ink);
+  border-color: rgba(12, 119, 168, 0.22);
+}
+
+#giftsView .status-toggle.is-on {
+  color: white;
+  background: var(--gifts-deep);
 }
 
 .route-finder {
