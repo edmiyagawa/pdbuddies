@@ -39,15 +39,15 @@ body {
 .character-backdrop img {
   position: absolute;
   width: var(--sprite-width, 120px);
-  opacity: var(--sprite-opacity, 0.12);
-  filter: drop-shadow(0 12px 18px rgba(16, 42, 67, 0.14));
+  opacity: var(--sprite-opacity, 0.2);
+  filter: drop-shadow(0 14px 20px rgba(16, 42, 67, 0.18));
   transform: translate(-50%, -50%) rotate(var(--sprite-rotation, 0deg));
   user-select: none;
 }
 
 .character-backdrop img.is-lineup {
-  opacity: var(--sprite-opacity, 0.08);
-  filter: blur(0.1px) drop-shadow(0 8px 12px rgba(16, 42, 67, 0.1));
+  opacity: var(--sprite-opacity, 0.13);
+  filter: blur(0.05px) drop-shadow(0 10px 14px rgba(16, 42, 67, 0.12));
 }
 
 button,
@@ -166,6 +166,19 @@ main {
   position: relative;
   z-index: 1;
   padding: 26px clamp(18px, 4vw, 54px) 56px;
+}
+
+.site-footer {
+  position: relative;
+  z-index: 1;
+  padding: 0 clamp(18px, 4vw, 54px) 28px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.site-footer p {
+  margin: 0;
 }
 
 .hero-strip {
@@ -417,6 +430,80 @@ select:focus {
   background: rgba(255, 250, 252, 0.96);
 }
 
+.route-filter-panel {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 12px;
+  background: rgba(255, 250, 252, 0.72);
+  border: 1px solid rgba(160, 107, 175, 0.18);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 24px rgba(133, 80, 160, 0.08);
+}
+
+.route-filter-group {
+  display: grid;
+  gap: 8px;
+}
+
+.route-filter-title {
+  color: var(--route-ink);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.route-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.route-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 0 10px;
+  color: var(--route-ink);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(160, 107, 175, 0.2);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.route-filter-chip strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  color: white;
+  background: var(--route-orchid);
+  border-radius: 999px;
+  font-size: 0.68rem;
+}
+
+.route-filter-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(133, 80, 160, 0.38);
+  box-shadow: 0 6px 16px rgba(133, 80, 160, 0.12);
+}
+
+.route-filter-chip.is-active {
+  color: white;
+  background: linear-gradient(135deg, var(--route-orchid), var(--route-plum));
+  border-color: transparent;
+}
+
+.route-filter-chip.is-active strong {
+  color: var(--route-ink);
+  background: var(--route-blush);
+}
+
 #routeView input,
 #routeView select {
   background: rgba(255, 255, 255, 0.9);
@@ -468,12 +555,30 @@ select:focus {
   color: var(--gifts-ink);
 }
 
+#giftsView .section-heading {
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+#giftsView .section-heading h2 {
+  max-width: 620px;
+  font-size: clamp(1.35rem, 2.3vw, 2.15rem);
+  line-height: 1.04;
+}
+
 #giftsView .section-heading p:last-child,
 #giftsView .subtext,
 #giftsView .card-line,
 #giftsView .kit ul,
 #giftsView .boosters-panel ul {
   color: #486477;
+}
+
+#giftsView .section-heading p:last-child {
+  max-width: 420px;
+  font-size: 0.88rem;
+  line-height: 1.38;
 }
 
 #giftsView .section-visual,
@@ -487,6 +592,11 @@ select:focus {
 
 #giftsView .section-visual::after {
   background: linear-gradient(90deg, rgba(213, 217, 234, 0.08), rgba(130, 212, 237, 0.36));
+}
+
+#giftsView .gift-visual {
+  height: clamp(96px, 12vw, 160px);
+  margin-bottom: 12px;
 }
 
 #giftsView .kit::before {
@@ -539,10 +649,10 @@ select:focus {
 
 .route-finder {
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(320px, 0.68fr);
-  gap: 14px;
+  grid-template-columns: minmax(0, 0.82fr) minmax(300px, 0.58fr);
+  gap: 10px;
   align-items: stretch;
-  margin: 0 0 18px;
+  margin: 0 0 14px;
 }
 
 .route-finder-controls,
@@ -555,30 +665,41 @@ select:focus {
 
 .route-finder-controls {
   display: grid;
-  gap: 12px;
-  padding: 14px;
+  gap: 9px;
+  padding: 10px;
 }
 
 .route-select-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
-  gap: 10px;
+  gap: 8px;
   align-items: end;
 }
 
 .route-target {
   display: grid;
   grid-template-columns: minmax(120px, 0.38fr) minmax(0, 1fr);
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
+#routeView .route-finder input,
+#routeView .route-finder select {
+  min-height: 36px;
+}
+
+#routeView .route-finder label span {
+  margin-bottom: 4px;
+  font-size: 0.68rem;
+}
+
 .icon-button {
-  min-width: 64px;
+  min-width: 56px;
+  min-height: 36px;
 }
 
 .route-map-frame {
-  min-height: 260px;
+  min-height: 190px;
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(250, 222, 228, 0.72), transparent 62%),
@@ -590,7 +711,7 @@ select:focus {
 .route-map {
   width: 100%;
   height: 100%;
-  min-height: 260px;
+  min-height: 190px;
   display: block;
 }
 
@@ -641,9 +762,9 @@ select:focus {
 
 .walking-route-panel {
   display: grid;
-  gap: 12px;
-  min-height: 104px;
-  padding: 14px;
+  gap: 9px;
+  min-height: 86px;
+  padding: 10px;
 }
 
 .route-empty-state {
@@ -662,13 +783,13 @@ select:focus {
 .plan-source,
 .route-note {
   color: var(--muted);
-  font-size: 0.86rem;
-  line-height: 1.42;
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 
 .plan-source,
 .route-note {
-  padding-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid rgba(160, 107, 175, 0.18);
 }
 
@@ -694,17 +815,17 @@ select:focus {
 
 .route-estimate strong {
   display: block;
-  font-size: 1.35rem;
+  font-size: 1.12rem;
 }
 
 .walking-steps {
   display: grid;
-  gap: 8px;
+  gap: 5px;
   margin: 0;
   padding-left: 20px;
   color: var(--ink);
-  font-size: 0.88rem;
-  line-height: 1.42;
+  font-size: 0.8rem;
+  line-height: 1.32;
 }
 
 .route-layout {
@@ -868,17 +989,31 @@ select:focus {
 
 .status-toggle {
   justify-self: end;
-  min-width: 102px;
-  min-height: 34px;
+  min-width: 0;
+  min-height: 28px;
+  padding: 0 10px;
   color: var(--navy);
   background: #fff;
   border: 1px solid rgba(16, 42, 67, 0.18);
   border-radius: 999px;
+  box-shadow: 0 5px 14px rgba(16, 42, 67, 0.08);
+  font-size: 0.72rem;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
 #routeView .status-toggle {
   color: var(--route-ink);
-  border-color: rgba(160, 107, 175, 0.24);
+  background: rgba(250, 222, 228, 0.42);
+  border-color: rgba(160, 107, 175, 0.2);
+}
+
+#routeView .status-toggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(133, 80, 160, 0.38);
+  box-shadow: 0 7px 18px rgba(133, 80, 160, 0.13);
 }
 
 .status-toggle.is-on {
@@ -887,7 +1022,10 @@ select:focus {
 }
 
 #routeView .status-toggle.is-on {
-  background: var(--route-plum);
+  color: white;
+  background: linear-gradient(135deg, var(--route-orchid), var(--route-plum));
+  border-color: transparent;
+  box-shadow: 0 8px 18px rgba(133, 80, 160, 0.2);
 }
 
 .inspector,
@@ -1073,9 +1211,27 @@ select:focus {
   overflow: hidden;
   min-height: 260px;
   padding: 18px;
+  color: inherit;
   background: white;
   border: 1px solid rgba(16, 42, 67, 0.12);
   border-radius: var(--radius);
+  text-align: left;
+}
+
+button.kit {
+  width: 100%;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+button.kit:hover {
+  transform: translateY(-2px);
+}
+
+#giftsView .kit.is-active {
+  background: rgba(130, 212, 237, 0.24);
+  border-color: var(--gifts-deep);
+  box-shadow: 0 0 0 3px rgba(58, 186, 227, 0.18), var(--gifts-shadow);
 }
 
 .kit::before {
@@ -1174,7 +1330,7 @@ select:focus {
 
 .event-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 18px;
 }
@@ -1191,6 +1347,24 @@ select:focus {
   position: relative;
   overflow: hidden;
   padding: 18px;
+  color: inherit;
+  text-align: left;
+}
+
+button.event-summary-card {
+  width: 100%;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+button.event-summary-card:hover {
+  transform: translateY(-2px);
+}
+
+#eventsView .event-summary-card.is-active {
+  background: rgba(138, 192, 229, 0.24);
+  border-color: var(--event-accent, var(--events-blue));
+  box-shadow: 0 0 0 3px rgba(138, 192, 229, 0.2), 0 10px 24px rgba(10, 100, 165, 0.08);
 }
 
 .event-summary-card::before {
@@ -1252,6 +1426,155 @@ select:focus {
 
 #eventsView .route-meta {
   color: var(--events-blue);
+}
+
+#photosView {
+  --photos-ice: #d5d9ea;
+  --photos-sky: #82d4ed;
+  --photos-blue: #3abae3;
+  --photos-deep: #0c77a8;
+  --photos-ink: #123653;
+  padding: clamp(16px, 3vw, 28px);
+  background:
+    linear-gradient(135deg, rgba(213, 217, 234, 0.72), rgba(130, 212, 237, 0.2) 52%, rgba(58, 186, 227, 0.16)),
+    #fbfdff;
+  border: 1px solid rgba(12, 119, 168, 0.16);
+  box-shadow: 0 16px 36px rgba(12, 119, 168, 0.12);
+}
+
+#photosView .eyebrow {
+  color: var(--photos-deep);
+}
+
+#photosView .section-heading h2,
+#photosView .photo-card strong {
+  color: var(--photos-ink);
+}
+
+#photosView .section-heading p:last-child,
+#photosView .subtext,
+#photosView .photo-card p,
+#photosView .photo-card span {
+  color: #5d7183;
+}
+
+.photos-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.photo-form,
+.photo-card {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(12, 119, 168, 0.16);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 24px rgba(12, 119, 168, 0.08);
+}
+
+.photo-form {
+  position: sticky;
+  top: 118px;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.photo-form input[type="file"] {
+  min-height: auto;
+  padding: 10px;
+  background: white;
+}
+
+.photo-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.photo-card {
+  overflow: hidden;
+}
+
+.photo-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--photos-ice);
+}
+
+.photo-card > div {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.photo-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.photo-card p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+#instructionsView {
+  --instructions-blush: #fadee4;
+  --instructions-mauve: #daafd2;
+  --instructions-lavender: #9c8cbd;
+  --instructions-orchid: #a06baf;
+  --instructions-plum: #8550a0;
+  --instructions-ink: #3e2555;
+  padding: clamp(16px, 3vw, 28px);
+  background:
+    linear-gradient(135deg, rgba(250, 222, 228, 0.78), rgba(218, 175, 210, 0.28) 48%, rgba(156, 140, 189, 0.18)),
+    #fffafc;
+  border: 1px solid rgba(160, 107, 175, 0.2);
+  box-shadow: 0 16px 36px rgba(133, 80, 160, 0.16);
+}
+
+#instructionsView .eyebrow {
+  color: var(--instructions-plum);
+}
+
+#instructionsView .section-heading h2,
+#instructionsView .instruction-card h3 {
+  color: var(--instructions-ink);
+}
+
+#instructionsView .section-heading p:last-child,
+#instructionsView .instruction-card ol {
+  color: #6f607d;
+}
+
+.instructions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.instruction-card {
+  padding: 18px;
+  background: rgba(255, 250, 252, 0.84);
+  border: 1px solid rgba(160, 107, 175, 0.2);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 24px rgba(133, 80, 160, 0.1);
+}
+
+.instruction-card ol {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.52;
+}
+
+.instruction-card li + li {
+  margin-top: 8px;
 }
 
 .ship3d-layout {
@@ -1486,6 +1809,7 @@ select:focus {
 @media (max-width: 1080px) {
   .hero-strip,
   .packing-layout,
+  .photos-layout,
   .ship3d-layout {
     grid-template-columns: 1fr;
   }
@@ -1509,6 +1833,7 @@ select:focus {
   }
 
   .boosters-panel,
+  .photo-form,
   .ship3d-panel {
     position: static;
   }
@@ -1518,7 +1843,10 @@ select:focus {
   }
 
   .gift-grid,
-  .event-lanes {
+  .event-summary-grid,
+  .event-lanes,
+  .photo-gallery,
+  .instructions-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1592,6 +1920,8 @@ select:focus {
   .gift-grid,
   .event-summary-grid,
   .event-lanes,
+  .photo-gallery,
+  .instructions-grid,
   .hero-metrics {
     grid-template-columns: 1fr;
   }

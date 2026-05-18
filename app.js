@@ -4,14 +4,17 @@ const state = {
   query: "",
   deck: "all",
   family: "all",
+  event: "all",
+  routeTheme: "all",
+  routeCelebration: "all",
   section: "all",
   routeFromType: "room",
   routeToType: "room",
   routeFrom: "",
   routeTo: "",
   delivered: readSet("pd-delivered"),
-  packed: readSet("pd-packed"),
   found: readSet("pd-found"),
+  photos: [],
 };
 
 const CHARACTER_SPRITES = [
@@ -42,9 +45,16 @@ const CHARACTER_SPRITES = [
   "lineup-10",
 ];
 
+const PHOTO_LIMIT_PER_PERSON = 5;
+const PHOTO_DB_NAME = "pixie-dust-buddies";
+const PHOTO_STORE_NAME = "photos";
+
 const SECTION_ORDER = { FWD: 0, MID: 1, AFT: 2, TBD: 9 };
 const SECTION_LABELS = { FWD: "FWD", MID: "MID", AFT: "AFT", TBD: "TBD" };
 const SECTION_LONG = { FWD: "FWD", MID: "Midship", AFT: "Aft", TBD: "Unknown" };
+const ROOM_LOCATION_OVERRIDES = {
+  17098: { section: "FWD", zone: 9 },
+};
 const SECTION_ZONES = {
   FWD: [1, 2, 7],
   MID: [3, 6, 9],
@@ -62,28 +72,169 @@ const ZONE_SIDES = {
 };
 
 const labels = {
-  princess: "Princess",
-  mickey: "Mickey",
-  duffy: "Duffy",
-  marvel: "Marvel",
+  princess: "Princesses & Royal",
+  mickey: "Mickey & Friends",
+  duffy: "Duffy & Friends",
+  frozen: "Frozen",
+  stitch: "Stitch & Experiments",
+  toystory: "Toy Story",
   pixar: "Pixar",
+  marvel: "Marvel Heroes",
   starwars: "Star Wars",
-  stitch: "Stitch",
-  pooh: "Pooh/Baymax/Olaf",
+  villains: "Villains",
+  animals: "Zootopia",
+  parks: "Disney Parks & Cruise",
+  flexible: "Surprise Me!",
   birthday: "Birthday",
   first: "First cruise",
-  anniversary: "Anniversary",
-  wedding: "Wedding",
+  castaway: "Castaway Club",
+  anniversary: "Wedding Anniversary",
+  wedding: "Wedding Anniversary",
   graduation: "Graduation",
 };
+
+const CHARACTER_FAMILIES = [
+  {
+    key: "princess",
+    name: "Princesses & Royal",
+    terms: [
+      "princess", "princesses", "royal", "snow white", "cinderella", "aurora", "sleeping beauty",
+      "ariel", "little mermaid", "belle", "beauty and the beast", "jasmine", "aladdin",
+      "pocahontas", "mulan", "tiana", "rapunzel", "tangled", "merida", "moana", "raya",
+      "mirabel", "encanto", "sofia", "elena"
+    ],
+    accent: "#a06baf",
+    items: ["Royal sticker sheet", "Gem-tone mini notebook", "Castle postcard", "Sparkle wand pencil", "Princess color charm"],
+  },
+  {
+    key: "mickey",
+    name: "Mickey & Friends",
+    terms: [
+      "mickey", "minnie", "donald", "daisy", "goofy", "pluto", "chip", "dale",
+      "chip and dale", "classic", "classic disney", "sailor mickey", "ducks"
+    ],
+    accent: "#d8232a",
+    items: ["Mickey sticker", "Nautical lanyard card", "Classic character keychain", "Red/yellow treat bag", "Captain-style magnet"],
+  },
+  {
+    key: "duffy",
+    name: "Duffy & Friends",
+    terms: [
+      "duffy", "shelliemay", "shellie may", "shellie", "gelatoni", "stella lou",
+      "stellalou", "cookieann", "cookie ann", "olu", "olu mel", "olumel", "lina bell", "linabell"
+    ],
+    accent: "#9b6a43",
+    items: ["Duffy mini charm", "Friendship bracelet", "Pastel bear sticker", "Nautical plush tag", "Discovery quest card"],
+  },
+  {
+    key: "frozen",
+    name: "Frozen",
+    terms: ["frozen", "elsa", "anna", "olaf", "sven", "kristoff", "arendelle"],
+    accent: "#3abae3",
+    items: ["Snowflake sticker", "Icy blue bracelet", "Frozen mini card", "Silver sparkle pencil", "Blue treat bag"],
+  },
+  {
+    key: "stitch",
+    name: "Stitch & Experiments",
+    terms: ["stitch", "angel", "lilo", "scrump", "ohana", "experiment 626", "626"],
+    accent: "#168fc7",
+    items: ["Blue alien sticker", "Tropical mini card", "Ohana-style bead charm", "Wave postcard", "Blue treat bag"],
+  },
+  {
+    key: "toystory",
+    name: "Toy Story",
+    terms: ["toy story", "buzz", "woody", "jessie", "alien", "aliens", "forky", "bo peep", "rex", "slinky", "bullseye"],
+    accent: "#ffca35",
+    items: ["Toy Story sticker", "Alien green mini card", "Star command tag", "Cowboy mini note", "Puzzle activity sheet"],
+  },
+  {
+    key: "pixar",
+    name: "Pixar",
+    terms: [
+      "pixar", "cars", "lightning mcqueen", "mater", "monsters", "sulley", "sully", "mike wazowski",
+      "nemo", "dory", "inside out", "joy", "sadness", "up", "wall-e", "walle",
+      "incredibles", "coco", "turning red", "elemental", "ratatouille"
+    ],
+    accent: "#0d7f9f",
+    items: ["Pixar sticker", "Alien green mini card", "Puzzle activity sheet", "Star command tag", "Character postcard"],
+  },
+  {
+    key: "marvel",
+    name: "Marvel Heroes",
+    terms: [
+      "marvel", "avengers", "superhero", "superheroes", "iron man", "spider", "spiderman",
+      "spider-man", "captain america", "hulk", "thor", "black panther", "guardians",
+      "groot", "rocket", "wanda", "loki", "captain marvel"
+    ],
+    accent: "#0a64a5",
+    items: ["Hero emblem sticker", "Comic speech-bubble notepad", "Blue/red wristband", "Shield-style magnet", "Mini action stamp"],
+  },
+  {
+    key: "starwars",
+    name: "Star Wars",
+    terms: [
+      "star wars", "starwars", "grogu", "mandalorian", "mando", "chewbacca", "vader",
+      "darth", "jedi", "lightsaber", "stormtrooper", "r2d2", "r2-d2", "bb8", "bb-8", "yoda"
+    ],
+    accent: "#1f2937",
+    items: ["Galaxy sticker", "Saber pencil", "Space mission card", "Tiny star map", "Silver/black bag tag"],
+  },
+  {
+    key: "villains",
+    name: "Villains",
+    terms: [
+      "villain", "villains", "maleficent", "ursula", "cruella", "evil queen", "queen of hearts",
+      "captain hook", "hook", "hades", "scar", "jafar", "dr facilier", "dr. facilier"
+    ],
+    accent: "#8550a0",
+    items: ["Villain sticker", "Dark sparkle pencil", "Potion label card", "Purple treat bag", "Mischief mini note"],
+  },
+  {
+    key: "animals",
+    name: "Zootopia",
+    terms: [
+      "zootopia", "zootropolis", "judy hopps", "judy", "nick wilde", "nick",
+      "flash", "clawhauser", "finnick", "gazelle"
+    ],
+    accent: "#ffca35",
+    items: ["Zootopia sticker", "City badge card", "Carrot-orange pencil", "Animal-print mini note", "Savanna treat bag"],
+  },
+  {
+    key: "parks",
+    name: "Disney Parks & Cruise",
+    terms: [
+      "disney cruise", "dcl", "disney adventure", "cruise", "ship", "castle", "fireworks",
+      "park", "parks", "tokyo disney", "disneyland", "disneysea", "walt disney world",
+      "wdw", "any disney", "anything disney", "general disney"
+    ],
+    accent: "#86b3cb",
+    items: ["Cruise magnet", "Castle postcard", "Fireworks sticker", "Ship mini card", "Pixie dust note"],
+  },
+  {
+    key: "flexible",
+    name: "Surprise Me!",
+    terms: ["surprise", "surprise me", "anything", "any character", "no preference", "mixed", "mystery"],
+    accent: "#d5d9ea",
+    items: ["Assorted sticker", "Mystery mini note", "Mixed color bracelet", "Pixie dust card", "General treat bag"],
+  },
+];
 
 const DEFAULT_DATA_URL = "./data/pd-app-data.json";
 const EVENT_DEFINITIONS = [
   { key: "birthday", terms: ["birthday", "bday", "born day"] },
   { key: "first", terms: ["first time", "first cruise", "first dcl", "first voyage", "maiden cruise"] },
+  { key: "castaway", terms: ["castaway", "castaway club", "second time", "second cruise", "second disney cruise", "second dcl cruise", "2nd cruise", "2nd disney cruise", "2nd dcl", "third cruise", "third disney cruise", "3rd cruise", "returning cruiser", "repeat cruiser", "not first cruise", "more than one time"] },
   { key: "anniversary", terms: ["anniversary"] },
   { key: "wedding", terms: ["wedding", "honeymoon", "proposal", "engagement"] },
   { key: "graduation", terms: ["graduation", "graduate", "grad trip"] },
+];
+const CELEBRATION_ORDER = ["birthday", "anniversary", "first", "castaway", "graduation"];
+const EXTRA_EVENT_BOOSTERS = [
+  {
+    key: "castaway",
+    name: "Castaway Club booster",
+    items: ["Welcome back card", "Castaway Club tag", "Nautical sticker", "Blue ribbon"],
+  },
 ];
 const SHEET_COLUMN_ALIASES = {
   deck: ["deck", "deck no", "deck number", "floor"],
@@ -233,10 +384,21 @@ init();
 async function init() {
   renderCharacterBackdrop();
   cacheEls();
+  syncViewFromHash();
   state.data = await loadAppData();
+  state.photos = await loadPhotos();
   hydrateControls();
   bindEvents();
   render();
+}
+
+function syncViewFromHash() {
+  const hashView = String(window.location.hash || "").replace(/^#/, "").replace(/View$/, "");
+  if (["route", "gifts", "events", "photos", "instructions"].includes(hashView)) {
+    state.view = hashView;
+  }
+  document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("is-active", tab.dataset.view === state.view));
+  document.querySelectorAll(".view").forEach((view) => view.classList.toggle("is-visible", view.id === `${state.view}View`));
 }
 
 function renderCharacterBackdrop() {
@@ -248,9 +410,9 @@ function renderCharacterBackdrop() {
     const isLineup = name.startsWith("lineup-");
     const left = 4 + Math.random() * 92;
     const top = 4 + Math.random() * 92;
-    const width = isLineup ? 58 + Math.random() * 32 : 92 + Math.random() * 90;
+    const width = isLineup ? 76 + Math.random() * 44 : 118 + Math.random() * 110;
     const rotation = -16 + Math.random() * 32;
-    const opacity = isLineup ? 0.055 + Math.random() * 0.04 : 0.07 + Math.random() * 0.06;
+    const opacity = isLineup ? 0.11 + Math.random() * 0.06 : 0.16 + Math.random() * 0.09;
     return `<img class="${isLineup ? "is-lineup" : ""}" src="./assets/characters/${name}.png" alt="" loading="lazy" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;--sprite-width:${width.toFixed(0)}px;--sprite-rotation:${rotation.toFixed(2)}deg;--sprite-opacity:${opacity.toFixed(3)};animation-delay:${(-index * 0.3).toFixed(1)}s" />`;
   }).join("");
 }
@@ -263,7 +425,7 @@ function shuffleSprites(items) {
 }
 
 async function loadAppData() {
-  const fallback = scrubPrivateNames(await loadFallbackData());
+  const fallback = withPreferredCharacterCategories(scrubPrivateNames(await loadFallbackData()));
   const sheetConfig = getSheetConfig();
 
   if (!sheetConfig.url) {
@@ -300,6 +462,28 @@ function withSpecialLocations(data) {
   return {
     ...data,
     places: SPECIAL_LOCATIONS,
+  };
+}
+
+function withPreferredCharacterCategories(data) {
+  const records = (data.records || []).map((record) => {
+    const families = classifyFamilies(record.preferred, CHARACTER_FAMILIES);
+    return {
+      ...record,
+      families: families.length ? families : [...(record.families || [])].filter((key) => CHARACTER_FAMILIES.some((family) => family.key === key)),
+      events: normalizeCelebrationKeys(record.events || []),
+    };
+  });
+  const families = CHARACTER_FAMILIES.map((family) => ({ ...family }));
+  const giftKits = buildGiftKits(records, families);
+
+  return {
+    ...data,
+    records,
+    route: { byDeck: groupRecordsByDeck(records) },
+    families,
+    topMentions: buildTopMentions(giftKits),
+    giftKits,
   };
 }
 
@@ -417,12 +601,12 @@ function buildDataFromSheet(rows, fallback, sheetConfig) {
   const objects = rowsToObjects(rows);
   const fallbackByRoom = new Map((fallback.records || []).map((record) => [String(record.room), record]));
   const records = objects
-    .map((row, index) => normalizeSheetRecord(row, index + 1, fallback.families, fallbackByRoom))
+    .map((row, index) => normalizeSheetRecord(row, index + 1, CHARACTER_FAMILIES, fallbackByRoom))
     .filter((record) => record.room || record.deck || record.preferred || record.eventsText || record.doorTheme);
 
   if (!records.length) throw new Error("The Google Sheet did not contain stateroom rows.");
 
-  const families = fallback.families.map((family) => ({ ...family }));
+  const families = CHARACTER_FAMILIES.map((family) => ({ ...family }));
   const eventBoosters = buildEventBoosters(records, fallback.eventBoosters);
   const giftKits = buildGiftKits(records, families);
 
@@ -456,7 +640,7 @@ function normalizeSheetRecord(row, id, families, fallbackByRoom = new Map()) {
   const eventsText = pickCell(row, SHEET_COLUMN_ALIASES.eventsText);
   const doorTheme = pickCell(row, SHEET_COLUMN_ALIASES.doorTheme);
   const fallbackRecord = fallbackByRoom.get(String(room)) || {};
-  const familyKeys = classifyFamilies([preferred, doorTheme, eventsText].join(" "), families);
+  const familyKeys = classifyFamilies(preferred, families);
   const eventKeys = classifyEvents(eventsText);
 
   return {
@@ -469,7 +653,6 @@ function normalizeSheetRecord(row, id, families, fallbackByRoom = new Map()) {
     doorTheme,
     families: familyKeys.length ? familyKeys : [...(fallbackRecord.families || [])],
     events: eventKeys.length ? eventKeys : [...(fallbackRecord.events || [])],
-    packed: false,
     delivered: false,
     found: false,
   };
@@ -517,18 +700,33 @@ function deckFromRoom(room) {
   return Number(room.slice(0, -3)) || "";
 }
 
+function normalizedMatchText(value) {
+  return ` ${String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()} `;
+}
+
+function includesTerm(haystack, term) {
+  const needle = normalizedMatchText(term).trim();
+  return needle ? haystack.includes(` ${needle} `) : false;
+}
+
 function classifyFamilies(text, families) {
-  const haystack = String(text || "").toLowerCase();
+  const haystack = normalizedMatchText(text);
   return families
-    .filter((family) => family.terms.some((term) => haystack.includes(String(term).toLowerCase())))
+    .filter((family) => family.terms.some((term) => includesTerm(haystack, term)))
     .map((family) => family.key);
 }
 
 function classifyEvents(text) {
   const haystack = String(text || "").toLowerCase();
-  return EVENT_DEFINITIONS
+  const keys = EVENT_DEFINITIONS
     .filter((event) => event.terms.some((term) => haystack.includes(term)))
     .map((event) => event.key);
+  const normalized = normalizeCelebrationKeys(keys);
+  return normalized.includes("castaway") ? normalized.filter((key) => key !== "first") : normalized;
+}
+
+function normalizeCelebrationKeys(keys) {
+  return [...new Set((keys || []).map((key) => key === "wedding" ? "anniversary" : key))];
 }
 
 function buildMeta(records, sheetConfig) {
@@ -565,14 +763,16 @@ function buildGiftKits(records, families) {
       count: matches.length,
       accent: family.accent,
       items: family.items,
-      suggestedQuantity: Math.ceil(matches.length * 1.15),
+      suggestedQuantity: matches.length,
       bestFor: matches.slice(0, 10).map((record) => record.room).filter(Boolean),
     };
   });
 }
 
 function buildEventBoosters(records, fallbackBoosters) {
-  return fallbackBoosters.map((booster) => ({
+  const boosters = [...fallbackBoosters, ...EXTRA_EVENT_BOOSTERS]
+    .filter((booster, index, all) => all.findIndex((candidate) => candidate.key === booster.key) === index);
+  return boosters.map((booster) => ({
     ...booster,
     count: records.filter((record) => record.events.includes(booster.key)).length,
   }));
@@ -599,6 +799,7 @@ function cacheEls() {
     "swapRouteButton",
     "clearRouteButton",
     "routeMapPanel",
+    "routeQuickFilters",
     "walkingRoutePanel",
     "deckRail",
     "routeList",
@@ -608,11 +809,17 @@ function cacheEls() {
     "boostersPanel",
     "eventSummaryGrid",
     "eventLanes",
+    "photoForm",
+    "photoStateroomInput",
+    "photoRoomOptions",
+    "photoCaptionInput",
+    "photoFileInput",
+    "photoStatus",
+    "photoGallery",
     "ship3dMount",
     "ship3dStatus",
     "resetShip3dButton",
     "printButton",
-    "markPackedButton",
   ].forEach((id) => {
     els[id] = document.getElementById(id);
   });
@@ -645,6 +852,12 @@ function hydrateControls() {
   els.routeToTypeSelect.innerHTML = typeOptions;
   syncRouteTypeControls();
   hydrateRouteTargetSelects();
+  els.photoRoomOptions.innerHTML = state.data.records
+    .map((record) => normalizeStateroom(record.room))
+    .filter(Boolean)
+    .sort((a, b) => Number(a) - Number(b))
+    .map((room) => `<option value="${escapeHtml(room)}"></option>`)
+    .join("");
 }
 
 function specialLocationOptions() {
@@ -693,6 +906,7 @@ function bindEvents() {
       document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("is-active", tab === button));
       document.querySelectorAll(".view").forEach((view) => view.classList.remove("is-visible"));
       document.getElementById(`${state.view}View`).classList.add("is-visible");
+      history.replaceState(null, "", `#${state.view}View`);
       render();
     });
   });
@@ -761,10 +975,16 @@ function bindEvents() {
   });
 
   els.printButton.addEventListener("click", () => window.print());
-  els.markPackedButton.addEventListener("click", () => {
-    filteredRecords().forEach((record) => state.packed.add(String(record.id)));
-    writeSet("pd-packed", state.packed);
-    renderGifts();
+
+  els.photoForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await addPhotoFromForm();
+  });
+
+  els.photoGallery.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-delete-photo]");
+    if (!button) return;
+    await deletePhoto(button.dataset.deletePhoto);
   });
 
   els.resetShip3dButton.addEventListener("click", () => {
@@ -790,19 +1010,17 @@ function render() {
   if (state.view === "route") renderRoute();
   if (state.view === "gifts") renderGifts();
   if (state.view === "events") renderEvents();
+  if (state.view === "photos") renderPhotos();
 }
 
 function renderMetrics() {
   const delivered = state.delivered.size;
-  const packed = state.packed.size;
   const found = state.found.size;
   els.heroMetrics.innerHTML = [
     metric(state.data.meta.entryCount, "stateroom entries"),
     metric(state.data.meta.withDoorThemes, "door themes captured"),
     metric(sectionCountsLabel(state.data.records), "FWD / MID / AFT stops"),
-    metric(`${delivered}/${state.data.meta.entryCount}`, "deliveries marked"),
-    metric(`${packed}/${state.data.meta.entryCount}`, "packing slips marked"),
-    metric(state.data.meta.dataSource || "Local data", "data source"),
+    metric(`${delivered}/${state.data.meta.entryCount}`, "Pixie Dusted"),
   ].join("");
 }
 
@@ -811,10 +1029,12 @@ function metric(value, label) {
 }
 
 function renderRoute() {
-  const records = filteredRecords();
+  const baseRecords = filteredRecords();
+  const records = filteredRecords({ includeRouteFilters: true });
   renderWalkingRoute();
   renderShip3D();
   renderDeckRail(records);
+  renderRouteQuickFilters(baseRecords);
 
   if (!records.length) {
     els.routeList.innerHTML = `<div class="empty">No staterooms match the current filters.</div>`;
@@ -827,6 +1047,54 @@ function renderRoute() {
   });
 
   renderRouteInspector(records);
+}
+
+function renderRouteQuickFilters(records) {
+  const themeKeys = visibleKeys(records, (record) => record.families, state.data.families.map((family) => family.key));
+  const celebrationKeys = visibleKeys(records, (record) => record.events, CELEBRATION_ORDER);
+  els.routeQuickFilters.innerHTML = `
+    ${routeFilterGroup("Theme", "theme", state.routeTheme, themeKeys, (key) => routeFilterCount(records, "theme", key))}
+    ${routeFilterGroup("Celebration", "celebration", state.routeCelebration, celebrationKeys, (key) => routeFilterCount(records, "celebration", key))}
+  `;
+  els.routeQuickFilters.querySelectorAll("[data-route-filter-type]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const type = button.dataset.routeFilterType;
+      if (type === "theme") state.routeTheme = button.dataset.routeFilterValue;
+      if (type === "celebration") state.routeCelebration = button.dataset.routeFilterValue;
+      renderRoute();
+    });
+  });
+}
+
+function routeFilterGroup(title, type, active, keys, countForKey) {
+  const allLabel = type === "theme" ? "All themes" : "All celebrations";
+  return `
+    <section class="route-filter-group">
+      <div class="route-filter-title">${title}</div>
+      <div class="route-filter-chips">
+        <button class="route-filter-chip ${active === "all" ? "is-active" : ""}" data-route-filter-type="${type}" data-route-filter-value="all" type="button">
+          <span>${allLabel}</span>
+          <strong>${countForKey("all")}</strong>
+        </button>
+        ${keys.map((key) => `
+          <button class="route-filter-chip ${active === key ? "is-active" : ""}" data-route-filter-type="${type}" data-route-filter-value="${escapeHtml(key)}" type="button">
+            <span>${escapeHtml(labels[key] || key)}</span>
+            <strong>${countForKey(key)}</strong>
+          </button>
+        `).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function visibleKeys(records, pickKeys, preferredOrder) {
+  const available = new Set(records.flatMap((record) => pickKeys(record) || []));
+  return preferredOrder.filter((key) => available.has(key));
+}
+
+function routeFilterCount(records, type, key) {
+  if (key === "all") return records.length;
+  return records.filter((record) => type === "theme" ? record.families.includes(key) : record.events.includes(key)).length;
 }
 
 function renderWalkingRoute() {
@@ -915,13 +1183,13 @@ function routeCard(record) {
           <div class="route-meta">${locationLine(location)}</div>
         </div>
         <button class="status-toggle ${done ? "is-on" : ""}" data-deliver="${record.id}" type="button">
-          ${done ? "Delivered" : "Mark delivered"}
+          Pixie Dusted
         </button>
       </div>
       <div class="badges">${badges([...record.families, ...record.events])}</div>
-      <p class="card-line"><strong>Theme cues:</strong> ${escapeHtml(themeCue(record))}</p>
-      <p class="subtext"><strong>Celebration cues:</strong> ${escapeHtml(eventCue(record))}</p>
-      <p class="subtext"><strong>Door:</strong> ${escapeHtml(record.doorTheme || "No door theme listed")}</p>
+      <p class="card-line"><strong>Theme:</strong> ${escapeHtml(themeCue(record))}</p>
+      <p class="subtext"><strong>Celebration:</strong> ${escapeHtml(eventCue(record))}</p>
+      <p class="subtext"><strong>Door theme:</strong> ${escapeHtml(record.doorTheme || "No door theme listed")}</p>
     </article>
   `;
 }
@@ -964,19 +1232,31 @@ function renderRouteInspector(records) {
 
 function renderGifts() {
   const records = filteredRecords();
-  els.giftGrid.innerHTML = state.data.giftKits.map((kit) => `
-    <article class="kit" style="--kit-color:${kit.accent}">
+  els.giftGrid.innerHTML = [
+    `<button class="kit kit-filter ${state.family === "all" ? "is-active" : ""}" data-gift-family="all" type="button" style="--kit-color:var(--gifts-deep)">
+      <p class="eyebrow">All categories</p>
+      <div class="kit-count"><strong>${filteredRecordsByFamily("all").length}</strong><span>rooms</span></div>
+      <p class="subtext">Show every visible packing slip across all preferred-character categories.</p>
+      <ul><li>Reset the gift category filter</li><li>Keep deck, section, and search filters active</li></ul>
+    </button>`,
+    ...state.data.giftKits.map((kit) => `
+    <button class="kit kit-filter ${state.family === kit.key ? "is-active" : ""}" data-gift-family="${kit.key}" type="button" style="--kit-color:${kit.accent}">
       <p class="eyebrow">${kit.name}</p>
       <div class="kit-count"><strong>${kit.suggestedQuantity}</strong><span>pack</span></div>
-      <p class="subtext">${kit.count} matching rooms plus a small buffer.</p>
       <ul>${kit.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-    </article>
-  `).join("");
+    </button>
+  `),
+  ].join("");
+
+  els.giftGrid.querySelectorAll("[data-gift-family]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.family = button.dataset.giftFamily;
+      els.familyFilter.value = state.family;
+      render();
+    });
+  });
 
   els.packingList.innerHTML = records.length ? records.map(packingCard).join("") : `<div class="empty">No packing slips match the current filters.</div>`;
-  els.packingList.querySelectorAll("[data-pack]").forEach((button) => {
-    button.addEventListener("click", () => toggleSet(state.packed, "pd-packed", button.dataset.pack, renderGifts));
-  });
 
   els.boostersPanel.innerHTML = `
     <h3>Celebration boosters</h3>
@@ -987,9 +1267,16 @@ function renderGifts() {
   `;
 }
 
+function filteredRecordsByFamily(familyKey) {
+  return state.data.records
+    .filter((record) => state.deck === "all" || String(record.deck) === state.deck)
+    .filter((record) => familyKey === "all" || record.families.includes(familyKey))
+    .filter((record) => state.section === "all" || roomLocation(record).section === state.section)
+    .filter((record) => matchesQuery(record));
+}
+
 function packingCard(record) {
   const items = recommendedItems(record);
-  const packed = state.packed.has(String(record.id));
   const location = roomLocation(record);
   return `
     <article class="packing-card">
@@ -999,9 +1286,6 @@ function packingCard(record) {
         <div class="badges">${badges([...record.families, ...record.events])}</div>
         <div class="item-chips">${items.map((item) => `<span class="item-chip">${escapeHtml(item)}</span>`).join("")}</div>
       </div>
-      <button class="status-toggle ${packed ? "is-on" : ""}" data-pack="${record.id}" type="button">
-        ${packed ? "Packed" : "Pack"}
-      </button>
     </article>
   `;
 }
@@ -1033,23 +1317,44 @@ function eventCue(record) {
 
 function renderEvents() {
   const records = filteredRecords();
-  const eventKeys = ["birthday", "anniversary", "first"];
+  const eventKeys = visibleKeys(records, (record) => record.events, CELEBRATION_ORDER);
+  if (state.event !== "all" && !eventKeys.includes(state.event)) {
+    state.event = "all";
+  }
   const eventRecords = eventKeys.map((key) => ({
     key,
     label: labels[key] || key,
     accent: eventAccent(key),
     records: records.filter((record) => record.events.includes(key)).sort(compareRoute),
   }));
+  const visibleEventRecords = state.event === "all"
+    ? eventRecords
+    : eventRecords.filter((group) => group.key === state.event);
+  const allEventRooms = uniqueRecords(eventRecords.flatMap((group) => group.records)).length;
 
-  els.eventSummaryGrid.innerHTML = eventRecords.map((group) => `
-    <article class="event-summary-card" style="--event-accent:${group.accent}">
+  els.eventSummaryGrid.innerHTML = [
+    `<button class="event-summary-card event-filter ${state.event === "all" ? "is-active" : ""}" data-event-filter="all" type="button" style="--event-accent:var(--events-blue)">
+      <p class="eyebrow">All celebrations</p>
+      <div class="kit-count"><strong>${allEventRooms}</strong><span>rooms</span></div>
+      <p class="subtext">Show every visible room with celebration tags.</p>
+    </button>`,
+    ...eventRecords.map((group) => `
+    <button class="event-summary-card event-filter ${state.event === group.key ? "is-active" : ""}" data-event-filter="${group.key}" type="button" style="--event-accent:${group.accent}">
       <p class="eyebrow">${escapeHtml(group.label)}</p>
       <div class="kit-count"><strong>${group.records.length}</strong><span>rooms</span></div>
       <p class="subtext">${eventBoosterLine(group.key)}</p>
-    </article>
-  `).join("");
+    </button>
+  `),
+  ].join("");
 
-  els.eventLanes.innerHTML = eventRecords.map((group) => `
+  els.eventSummaryGrid.querySelectorAll("[data-event-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.event = button.dataset.eventFilter;
+      renderEvents();
+    });
+  });
+
+  els.eventLanes.innerHTML = visibleEventRecords.map((group) => `
     <section class="event-lane" style="--event-accent:${group.accent}">
       <div class="mini-heading">
         <h3>${escapeHtml(group.label)}</h3>
@@ -1060,6 +1365,164 @@ function renderEvents() {
       </div>
     </section>
   `).join("");
+}
+
+function uniqueRecords(records) {
+  return [...new Map(records.map((record) => [String(record.id), record])).values()];
+}
+
+function renderPhotos() {
+  const photos = state.photos.slice().sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+  const counts = countPhotosByStateroom(state.photos);
+  els.photoStatus.textContent = photos.length
+    ? `${photos.length} photo${photos.length === 1 ? "" : "s"} saved on this device. Limit: ${PHOTO_LIMIT_PER_PERSON} per stateroom.`
+    : `Limit: ${PHOTO_LIMIT_PER_PERSON} photos per stateroom on this device.`;
+  els.photoGallery.innerHTML = photos.length ? photos.map((photo) => `
+    <article class="photo-card">
+      <img src="${escapeHtml(photo.image)}" alt="${escapeHtml(photo.caption)}" loading="lazy" />
+      <div>
+        <div class="photo-card-head">
+          <strong>Stateroom ${escapeHtml(photoStateroom(photo) || "Unknown")}</strong>
+          <span>${counts[stateroomKey(photoStateroom(photo))] || 0}/${PHOTO_LIMIT_PER_PERSON}</span>
+        </div>
+        <p>${escapeHtml(photo.caption)}</p>
+        <button class="ghost" data-delete-photo="${escapeHtml(photo.id)}" type="button">Remove</button>
+      </div>
+    </article>
+  `).join("") : `<div class="empty">No photos uploaded on this device yet.</div>`;
+}
+
+async function addPhotoFromForm() {
+  const room = normalizeStateroom(els.photoStateroomInput.value);
+  const caption = els.photoCaptionInput.value.trim();
+  const file = els.photoFileInput.files?.[0];
+  if (!room || !caption || !file) return;
+  if (!file.type.startsWith("image/")) {
+    els.photoStatus.textContent = "Please choose an image file.";
+    return;
+  }
+  if (!isKnownStateroom(room)) {
+    els.photoStatus.textContent = `Stateroom ${room} is not in the current records. Please check the number.`;
+    return;
+  }
+
+  const key = stateroomKey(room);
+  const existing = state.photos.filter((photo) => stateroomKey(photoStateroom(photo)) === key).length;
+  if (existing >= PHOTO_LIMIT_PER_PERSON) {
+    els.photoStatus.textContent = `Stateroom ${room} already has ${PHOTO_LIMIT_PER_PERSON} photos on this device.`;
+    return;
+  }
+
+  const image = await fileToDataUrl(file);
+  const photo = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    room,
+    caption,
+    image,
+    createdAt: Date.now(),
+  };
+  await savePhoto(photo);
+  state.photos = await loadPhotos();
+  els.photoForm.reset();
+  els.photoStatus.textContent = `Added photo for stateroom ${room}.`;
+  renderPhotos();
+}
+
+async function deletePhoto(id) {
+  await removePhoto(id);
+  state.photos = await loadPhotos();
+  renderPhotos();
+}
+
+function countPhotosByStateroom(photos) {
+  return photos.reduce((acc, photo) => {
+    const key = stateroomKey(photoStateroom(photo));
+    if (!key) return acc;
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function photoStateroom(photo) {
+  return normalizeStateroom(photo.room || photo.stateroom || photo.person);
+}
+
+function normalizeStateroom(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function stateroomKey(value) {
+  return normalizeStateroom(value);
+}
+
+function isKnownStateroom(room) {
+  const key = stateroomKey(room);
+  return state.data.records.some((record) => stateroomKey(record.room) === key);
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("Unable to read photo."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function openPhotoDb() {
+  return new Promise((resolve, reject) => {
+    if (!("indexedDB" in window)) {
+      reject(new Error("Photo storage is unavailable in this browser."));
+      return;
+    }
+
+    const request = indexedDB.open(PHOTO_DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(PHOTO_STORE_NAME)) {
+        db.createObjectStore(PHOTO_STORE_NAME, { keyPath: "id" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Unable to open photo storage."));
+  });
+}
+
+async function withPhotoStore(mode, action) {
+  const db = await openPhotoDb();
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      db.close();
+      fn(value);
+    };
+    const transaction = db.transaction(PHOTO_STORE_NAME, mode);
+    const store = transaction.objectStore(PHOTO_STORE_NAME);
+    const request = action(store);
+    request.onsuccess = () => finish(resolve, request.result);
+    request.onerror = () => finish(reject, request.error || new Error("Photo storage request failed."));
+    transaction.onerror = () => finish(reject, transaction.error || new Error("Photo storage transaction failed."));
+    transaction.onabort = () => finish(reject, transaction.error || new Error("Photo storage transaction was cancelled."));
+  });
+}
+
+async function loadPhotos() {
+  try {
+    return await withPhotoStore("readonly", (store) => store.getAll());
+  } catch (error) {
+    console.warn(error);
+    return [];
+  }
+}
+
+async function savePhoto(photo) {
+  await withPhotoStore("readwrite", (store) => store.put(photo));
+}
+
+async function removePhoto(id) {
+  await withPhotoStore("readwrite", (store) => store.delete(id));
 }
 
 function eventCard(record) {
@@ -1085,8 +1548,10 @@ function eventBoosterLine(key) {
 function eventAccent(key) {
   return {
     birthday: "#E34B62",
-    anniversary: "#FFCA35",
+    anniversary: "#FFEB94",
     first: "#0A64A5",
+    castaway: "#8AC0E5",
+    graduation: "#FFCA35",
   }[key] || "#8AC0E5";
 }
 
@@ -1489,10 +1954,12 @@ function escapeSvg(value) {
   return escapeHtml(value);
 }
 
-function filteredRecords() {
+function filteredRecords({ includeRouteFilters = false } = {}) {
   return state.data.records
     .filter((record) => state.deck === "all" || String(record.deck) === state.deck)
     .filter((record) => state.family === "all" || record.families.includes(state.family))
+    .filter((record) => !includeRouteFilters || state.routeTheme === "all" || record.families.includes(state.routeTheme))
+    .filter((record) => !includeRouteFilters || state.routeCelebration === "all" || record.events.includes(state.routeCelebration))
     .filter((record) => state.section === "all" || roomLocation(record).section === state.section)
     .filter((record) => matchesQuery(record))
     .sort(compareRoute);
@@ -1534,13 +2001,14 @@ function roomLocation(record) {
   if (!match) {
     return { deck: record.deck || null, zone: null, roomSuffix: 999, section: "TBD" };
   }
-  const zone = Number(match[2]);
+  const override = ROOM_LOCATION_OVERRIDES[rawRoom] || {};
+  const zone = Number(override.zone || match[2]);
   const roomSuffix = Number(match[3]);
   return {
     deck: Number(match[1]),
     zone,
     roomSuffix,
-    section: sectionForZone(Number(record.deck || match[1]), zone),
+    section: override.section || sectionForZone(Number(record.deck || match[1]), zone),
   };
 }
 

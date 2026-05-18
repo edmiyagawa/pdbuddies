@@ -42,19 +42,6 @@ const PRIVATE_COLUMN_ALIASES = [
   "guests",
   "occupants",
   "room occupants",
-  "preferred characters",
-  "preferred character",
-  "favourite characters",
-  "favorite characters",
-  "characters",
-  "likes",
-  "preference",
-  "special events",
-  "special event",
-  "events",
-  "celebration",
-  "celebrations",
-  "occasion",
 ];
 
 function redactPrivateColumns(csv) {

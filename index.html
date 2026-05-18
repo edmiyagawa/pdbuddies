@@ -3,20 +3,22 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Disney Adventure Pixie Dust Planner | 21-25 May 2026</title>
-    <link rel="stylesheet" href="./styles.css?v=characters-bg-1" />
+    <title>Pixie Dust Buddies | Disney Adventure · 21-25 May 2026</title>
+    <link rel="stylesheet" href="./styles.css?v=wedding-anniversary-1" />
   </head>
   <body>
     <div class="character-backdrop" id="characterBackdrop" aria-hidden="true"></div>
     <header class="topbar">
       <div>
         <p class="eyebrow">Disney Adventure · 21-25 May 2026</p>
-        <h1>Pixie Dusting Planner</h1>
+        <h1>Pixie Dust Buddies</h1>
       </div>
       <nav class="tabs" aria-label="App views">
         <button class="tab is-active" data-view="route" type="button">Route</button>
         <button class="tab" data-view="gifts" type="button">Gifts</button>
-        <button class="tab" data-view="events" type="button">Events</button>
+        <button class="tab" data-view="events" type="button">Celebration</button>
+        <button class="tab" data-view="photos" type="button">Photos</button>
+        <button class="tab" data-view="instructions" type="button">Instructions</button>
       </nav>
     </header>
 
@@ -60,6 +62,7 @@
           </div>
           <p>Choose rooms or other locations to get deck-plan-aware walking steps using FWD/AFT position, port/starboard side, venues, and lift banks.</p>
         </div>
+        <div class="route-filter-panel" id="routeQuickFilters" aria-label="Route theme and celebration filters"></div>
         <div class="route-finder" aria-label="Room to room walking route">
           <div class="route-finder-controls">
             <div class="route-map-frame" id="routeMapPanel"></div>
@@ -117,7 +120,7 @@
             <p class="eyebrow">Gift matchmaker</p>
             <h2>Pack by character world, then add celebration boosters</h2>
           </div>
-          <p>Quantities include a small buffer. Suggestions are themed from official Disney Cruise and Disney Store shopping categories, not live inventory.</p>
+          <p>Suggestions are themed from official Disney Cruise and Disney Store shopping categories, not live inventory.</p>
         </div>
         <div class="section-visual gift-visual" aria-hidden="true">
           <img src="./assets/gift-flatlay.jpg" alt="" />
@@ -127,7 +130,6 @@
           <section class="packing-list">
             <div class="mini-heading">
               <h3>Room packing slips</h3>
-              <button class="ghost" id="markPackedButton" type="button">Mark visible packed</button>
             </div>
             <div id="packingList"></div>
           </section>
@@ -135,10 +137,10 @@
         </div>
       </section>
 
-      <section class="view" id="eventsView" aria-label="Special events tracker">
+      <section class="view" id="eventsView" aria-label="Celebration tracker">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Special events</p>
+            <p class="eyebrow">Celebration</p>
             <h2>Track celebrations before each Pixie Dust run</h2>
           </div>
           <p>See rooms tagged for birthdays, anniversaries, and first cruises so celebration boosters can be packed and delivered with the right route batch.</p>
@@ -147,9 +149,100 @@
         <div class="event-lanes" id="eventLanes"></div>
       </section>
 
+      <section class="view" id="photosView" aria-label="Photo uploads">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Photo memories</p>
+            <h2>Share pixie dust moments</h2>
+          </div>
+          <p>Add up to 5 photos per stateroom with captions. Only staterooms in the current records can add photos.</p>
+        </div>
+        <div class="photos-layout">
+          <form class="photo-form" id="photoForm">
+            <label>
+              <span>Stateroom number</span>
+              <input id="photoStateroomInput" type="text" inputmode="numeric" maxlength="6" placeholder="e.g. 11266" list="photoRoomOptions" required />
+              <datalist id="photoRoomOptions"></datalist>
+            </label>
+            <label>
+              <span>Caption</span>
+              <input id="photoCaptionInput" type="text" maxlength="120" placeholder="e.g. First pixie dust surprise" required />
+            </label>
+            <label>
+              <span>Photo</span>
+              <input id="photoFileInput" type="file" accept="image/*" required />
+            </label>
+            <button class="ghost" type="submit">Add photo</button>
+            <p class="subtext" id="photoStatus">Limit: 5 photos per stateroom on this device.</p>
+          </form>
+          <div class="photo-gallery" id="photoGallery"></div>
+        </div>
+      </section>
+
+      <section class="view" id="instructionsView" aria-label="Instructions">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Instructions</p>
+            <h2>How to use Pixie Dust Buddies</h2>
+          </div>
+          <p>Use the tabs together to plan routes, prepare themed gifts, track celebration moments, and save photo memories during the sailing.</p>
+        </div>
+        <div class="instructions-grid">
+          <article class="instruction-card">
+            <h3>Route</h3>
+            <ol>
+              <li>Use Search, Deck, Character Group, and Ship Section to narrow the room list.</li>
+              <li>Select a From and To room or Other Location to generate walking steps.</li>
+              <li>Use the 3D route view to check deck changes and lift travel.</li>
+              <li>Tap Pixie Dusted after a room has received its pixie dust.</li>
+            </ol>
+          </article>
+          <article class="instruction-card">
+            <h3>Gifts</h3>
+            <ol>
+              <li>Click a character category card to filter the packing slips below.</li>
+              <li>Use All categories to reset the category filter.</li>
+              <li>Gift categories are based on the Preferred characters column in the Google Sheet.</li>
+              <li>The number on each category is the exact number of matching gifts to prepare.</li>
+            </ol>
+          </article>
+          <article class="instruction-card">
+            <h3>Celebration</h3>
+            <ol>
+              <li>Click a celebration card to filter by the same celebration tags shown in Route.</li>
+              <li>Use All celebrations to reset the celebration filter.</li>
+              <li>Celebration categories are based on the Special event column in the Google Sheet.</li>
+              <li>Use celebration boosters for rooms with tagged milestones.</li>
+            </ol>
+          </article>
+          <article class="instruction-card">
+            <h3>Photos</h3>
+            <ol>
+              <li>Add a stateroom number, caption, and photo from the Photos tab.</li>
+              <li>Only staterooms in the current records can add photos.</li>
+              <li>Each stateroom can save up to 5 photos on the current device.</li>
+              <li>Use Remove to delete a saved photo from this browser.</li>
+            </ol>
+          </article>
+          <article class="instruction-card">
+            <h3>Data & Sharing</h3>
+            <ol>
+              <li>The app reads the live Google Sheet when loaded online or through the local server.</li>
+              <li>Pixie Dusted status and photos are saved only in the current browser on the current device.</li>
+              <li>Refreshing keeps local status and photos, but another device will have its own saved items.</li>
+              <li>Update the Google Sheet to change room, gift, or event data.</li>
+            </ol>
+          </article>
+        </div>
+      </section>
+
     </main>
 
+    <footer class="site-footer">
+      <p>For personal, non-commercial use only. Copyright &copy; 2026 Ed Miyagawa. All rights reserved.</p>
+    </footer>
+
     <script src="./config.js"></script>
-    <script src="./app.js?v=characters-bg-1"></script>
+    <script src="./app.js?v=wedding-anniversary-1"></script>
   </body>
 </html>

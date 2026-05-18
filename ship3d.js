@@ -726,7 +726,7 @@ function renderStatus(state) {
         <h3>${selected.room ? `Room ${escapeHtml(selected.room)}` : "Room TBD"}</h3>
         <p class="subtext">${escapeHtml(state.helpers.locationLine(selectedLocation))}</p>
         <button class="status-toggle ${state.delivered.has(String(selected.id)) ? "is-on" : ""}" data-ship-deliver="${selected.id}" type="button">
-          ${state.delivered.has(String(selected.id)) ? "Delivered" : "Mark delivered"}
+          Pixie Dusted
         </button>
       </div>
     ` : `<p class="subtext">Click a room marker to inspect it.</p>`}
