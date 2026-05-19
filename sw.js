@@ -1,4 +1,4 @@
-const CACHE_NAME = "pixie-dust-buddies-v6";
+const CACHE_NAME = "pixie-dust-buddies-v7";
 const SHEET_CACHE_KEY = "/api/sheet";
 const APP_SHELL = [
   "/",
