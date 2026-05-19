@@ -30,6 +30,7 @@ const LIFT_BANKS = [
   { key: "fwd", label: "FWD lifts", progress: 0.34 },
   { key: "aft", label: "AFT lifts", progress: 0.75 },
 ];
+const DEFAULT_SELECTED_ROOM = "13613";
 const DECK_VOIDS = {
   9: [
     { z: -0.25, length: 2.1, width: 2.0, label: "Medical / center venue" },
@@ -104,8 +105,8 @@ function createScene(mount, status, helpers) {
   mount.innerHTML = "";
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x092842);
-  scene.fog = new THREE.Fog(0x092842, 28, 54);
+  scene.background = new THREE.Color(0x0b4f86);
+  scene.fog = new THREE.Fog(0x0b4f86, 30, 58);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -121,10 +122,10 @@ function createScene(mount, status, helpers) {
   const group = new THREE.Group();
   scene.add(group);
 
-  const hemi = new THREE.HemisphereLight(0xd7f3ff, 0x0a1f33, 1.38);
+  const hemi = new THREE.HemisphereLight(0xe7f8ff, 0x092842, 1.48);
   scene.add(hemi);
 
-  const key = new THREE.DirectionalLight(0xffe5a0, 3.1);
+  const key = new THREE.DirectionalLight(0xfff2c3, 3.4);
   key.position.set(-8, 15, 12);
   key.castShadow = true;
   scene.add(key);
@@ -135,12 +136,18 @@ function createScene(mount, status, helpers) {
 
   const water = new THREE.Mesh(
     new THREE.PlaneGeometry(20, 24, 1, 1),
-    new THREE.MeshStandardMaterial({ color: 0x4a2c62, roughness: 0.76, metalness: 0.05 })
+    new THREE.MeshStandardMaterial({ color: 0x0a6ea0, roughness: 0.76, metalness: 0.05 })
   );
   water.rotation.x = -Math.PI / 2;
   water.position.y = -0.28;
   water.receiveShadow = true;
   scene.add(water);
+
+  const grid = new THREE.GridHelper(22, 22, 0x66b6df, 0x2d79aa);
+  grid.position.y = -0.255;
+  grid.material.transparent = true;
+  grid.material.opacity = 0.28;
+  scene.add(grid);
 
   const state = {
     mount,
@@ -256,12 +263,17 @@ function buildShip(state) {
     state.roomMeshes.set(String(record.id), room);
   });
 
-  if (!state.selectedId && records[0]) state.selectedId = String(records[0].id);
+  if (!state.selectedId && records[0]) state.selectedId = defaultSelectedId(records);
   if (state.selectedId && !state.roomMeshes.has(String(state.selectedId))) {
-    state.selectedId = records[0] ? String(records[0].id) : null;
+    state.selectedId = defaultSelectedId(records);
   }
 
   buildRouteOverlay(state, minDeck);
+}
+
+function defaultSelectedId(records) {
+  const preferred = records.find((record) => String(record.room) === DEFAULT_SELECTED_ROOM);
+  return preferred ? String(preferred.id) : records[0] ? String(records[0].id) : null;
 }
 
 function mergeRecords(primary, extra) {
@@ -311,6 +323,7 @@ function buildDeckBand(group, y, deck) {
   buildZonePanels(group, y, deck);
   buildDeckPlanVoids(group, y, deck);
   buildLiftMarkers(group, y);
+  buildWindowRows(group, y, deck);
 
   const label = makeDeckLabel(deck);
   label.position.set(-3.34, y + 0.18, -6.95);
@@ -318,7 +331,7 @@ function buildDeckBand(group, y, deck) {
 }
 
 function buildHull(group, minDeck, maxDeck) {
-  const hullMaterial = new THREE.MeshStandardMaterial({ color: 0xf8fbff, roughness: 0.52, metalness: 0.05 });
+  const hullMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0.04 });
   const lower = new THREE.Mesh(shipFootprintExtrudeGeometry(0.42), hullMaterial);
   lower.rotation.x = -Math.PI / 2;
   lower.scale.set(1.06, 1.04, 1);
@@ -328,31 +341,42 @@ function buildHull(group, minDeck, maxDeck) {
   group.add(lower);
 
   const wallHeight = Math.max(2.9, (maxDeck - minDeck + 1) * 0.45);
-  const sideMaterial = new THREE.MeshStandardMaterial({ color: 0xe8f2f6, roughness: 0.58, transparent: true, opacity: 0.28 });
+  const sideMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.52, transparent: true, opacity: 0.36 });
   [-SHIP.width / 2 - 0.05, SHIP.width / 2 + 0.05].forEach((x) => {
     const side = new THREE.Mesh(new THREE.BoxGeometry(0.08, wallHeight, 12.7), sideMaterial);
     side.position.set(x, 2.65, 0.1);
     group.add(side);
   });
 
-  const stripe = new THREE.Mesh(
-    new THREE.BoxGeometry(5.7, 0.12, 13.25),
-    new THREE.MeshStandardMaterial({ color: 0xc92a2a, roughness: 0.5 })
+  const blackHull = new THREE.Mesh(
+    new THREE.BoxGeometry(5.5, 0.62, 12.9),
+    new THREE.MeshStandardMaterial({ color: 0x050608, roughness: 0.6, metalness: 0.04 })
   );
-  stripe.position.set(0, 0.2, 0.08);
-  group.add(stripe);
+  blackHull.position.set(0, 0.05, 0.28);
+  group.add(blackHull);
 
-  const navyKeel = new THREE.Mesh(
-    new THREE.BoxGeometry(5.3, 0.34, 12.4),
-    new THREE.MeshStandardMaterial({ color: 0x102a43, roughness: 0.62, metalness: 0.05, transparent: true, opacity: 0.72 })
+  const redKeel = new THREE.Mesh(
+    new THREE.BoxGeometry(5.1, 0.18, 13.45),
+    new THREE.MeshStandardMaterial({ color: 0xc3131b, roughness: 0.48, metalness: 0.02 })
   );
-  navyKeel.position.set(0, -0.05, 0.35);
-  group.add(navyKeel);
+  redKeel.position.set(0, -0.21, 0.38);
+  group.add(redKeel);
+
+  const goldLine = new THREE.Mesh(
+    new THREE.BoxGeometry(5.64, 0.035, 12.8),
+    new THREE.MeshBasicMaterial({ color: 0xf4c247 })
+  );
+  goldLine.position.set(0, 0.43, 0.12);
+  group.add(goldLine);
+
+  buildExteriorRoomGrid(group, minDeck, maxDeck);
+  buildLifeBoatBelts(group, minDeck);
 
   const terraces = [
-    { y: 5.82, z: -4.38, w: 2.35, l: 1.65, h: 0.44 },
-    { y: 6.25, z: -4.92, w: 1.78, l: 1.15, h: 0.36 },
-    { y: 5.65, z: 4.75, w: 2.65, l: 1.55, h: 0.28 },
+    { y: 5.78, z: -4.52, w: 3.2, l: 1.7, h: 0.42 },
+    { y: 6.18, z: -5.08, w: 2.42, l: 1.05, h: 0.34 },
+    { y: 5.75, z: 0.05, w: 3.35, l: 3.55, h: 0.26 },
+    { y: 5.72, z: 4.85, w: 2.9, l: 1.7, h: 0.3 },
   ];
   terraces.forEach((part) => {
     const deckhouse = new THREE.Mesh(
@@ -365,7 +389,7 @@ function buildHull(group, minDeck, maxDeck) {
   });
 
   const bridge = new THREE.Mesh(
-    new THREE.BoxGeometry(2.55, 0.48, 1.18),
+    new THREE.BoxGeometry(3.1, 0.48, 1.28),
     new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.48 })
   );
   bridge.position.set(0, 6.68, -5.55);
@@ -379,17 +403,8 @@ function buildHull(group, minDeck, maxDeck) {
   bridgeGlass.position.set(0, 6.78, -6.17);
   group.add(bridgeGlass);
 
-  const funnelMaterial = new THREE.MeshStandardMaterial({ color: 0xc2412d, roughness: 0.46 });
-  [-0.55, 0.55].forEach((x) => {
-    const funnel = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.82, 24), funnelMaterial);
-    funnel.position.set(x, 7.18, -3.55);
-    funnel.castShadow = true;
-    group.add(funnel);
-    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.12, 24), new THREE.MeshStandardMaterial({ color: 0x102a43 }));
-    cap.position.set(x, 7.64, -3.55);
-    group.add(cap);
-  });
-
+  buildAdventureFunnels(group);
+  buildTopDeckFeatures(group);
   buildAftPool(group);
   addFootprintOutline(group, 0.68, 0x0f344d, 0.8);
   const fwdLabel = makeSimpleLabel("FWD", "#f8fafc", 82, 32);
@@ -422,6 +437,119 @@ function buildZonePanels(group, y, deck) {
   );
   centerLine.position.set(0, y - 0.07, 0);
   group.add(centerLine);
+}
+
+function buildExteriorRoomGrid(group, minDeck, maxDeck) {
+  const windowMaterial = new THREE.MeshBasicMaterial({ color: 0x8fd0df, transparent: true, opacity: 0.84 });
+  const balconyMaterial = new THREE.MeshBasicMaterial({ color: 0xe7f6fa, transparent: true, opacity: 0.74 });
+  const decks = Math.max(5, maxDeck - minDeck + 1);
+  const rows = Math.min(8, decks);
+  const startY = 1.15;
+  const sideX = SHIP.width / 2 + 0.095;
+  [-1, 1].forEach((side) => {
+    for (let row = 0; row < rows; row += 1) {
+      const y = startY + row * 0.38;
+      for (let i = 0; i < 32; i += 1) {
+        const z = -5.75 + i * 0.36;
+        const window = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.07, 0.16), windowMaterial);
+        window.position.set(side * sideX, y, z);
+        group.add(window);
+        if (row > 1 && i % 2 === 0) {
+          const balcony = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.018, 0.2), balconyMaterial);
+          balcony.position.set(side * (sideX + 0.012), y - 0.07, z);
+          group.add(balcony);
+        }
+      }
+    }
+  });
+}
+
+function buildWindowRows(group, y, deck) {
+  if (Number(deck) < 9 || Number(deck) > 17) return;
+  const glass = new THREE.MeshBasicMaterial({ color: 0xbbe7ef, transparent: true, opacity: 0.45 });
+  [-1, 1].forEach((side) => {
+    for (let i = 0; i < 18; i += 1) {
+      const z = -5.25 + i * 0.58;
+      const window = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.055, 0.18), glass);
+      window.position.set(side * (SHIP.width / 2 + 0.105), y + 0.08, z);
+      group.add(window);
+    }
+  });
+}
+
+function buildLifeBoatBelts(group, minDeck) {
+  const boatMaterial = new THREE.MeshStandardMaterial({ color: 0xffc52e, roughness: 0.42, metalness: 0.03 });
+  const roofMaterial = new THREE.MeshStandardMaterial({ color: 0xf8f4e6, roughness: 0.48 });
+  const y = deckY(10, minDeck) + 0.02;
+  [-1, 1].forEach((side) => {
+    [-4.15, -3.15, -2.15, -0.95, 0.15, 1.25, 2.35, 3.45, 4.55].forEach((z) => {
+      const boat = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.2, 0.68), boatMaterial);
+      boat.position.set(side * (SHIP.width / 2 + 0.3), y, z);
+      boat.castShadow = true;
+      group.add(boat);
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.045, 0.54), roofMaterial);
+      roof.position.set(side * (SHIP.width / 2 + 0.3), y + 0.12, z);
+      group.add(roof);
+    });
+  });
+}
+
+function buildAdventureFunnels(group) {
+  const funnelMaterial = new THREE.MeshStandardMaterial({ color: 0xc3131b, roughness: 0.42, metalness: 0.02 });
+  const capMaterial = new THREE.MeshStandardMaterial({ color: 0x101316, roughness: 0.46 });
+  [
+    { z: -3.7, scale: 1 },
+    { z: 2.55, scale: 0.96 },
+  ].forEach((item) => {
+    const funnel = new THREE.Mesh(new THREE.CylinderGeometry(0.52 * item.scale, 0.62 * item.scale, 1.05, 4), funnelMaterial);
+    funnel.rotation.y = Math.PI / 4;
+    funnel.position.set(0, 6.72, item.z);
+    funnel.castShadow = true;
+    group.add(funnel);
+
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.54 * item.scale, 0.54 * item.scale, 0.18, 4), capMaterial);
+    cap.rotation.y = Math.PI / 4;
+    cap.position.set(0, 7.34, item.z);
+    group.add(cap);
+
+    const badge = makeSimpleLabel("M", "#ffffff", 64, 44, 26, 0.42, 0.28);
+    badge.position.set(0.02, 6.76, item.z - 0.54);
+    group.add(badge);
+  });
+}
+
+function buildTopDeckFeatures(group) {
+  const deckMat = new THREE.MeshStandardMaterial({ color: 0xc7b08e, roughness: 0.62 });
+  const topDeck = new THREE.Mesh(new THREE.BoxGeometry(4.85, 0.08, 11.4), deckMat);
+  topDeck.position.set(0, 5.47, 0.15);
+  group.add(topDeck);
+
+  const poolMaterial = new THREE.MeshBasicMaterial({ color: 0x7ad8ec, transparent: true, opacity: 0.78 });
+  [
+    { x: -0.82, z: -0.8, r: 0.46 },
+    { x: 0.92, z: 1.25, r: 0.52 },
+  ].forEach((pool) => {
+    const water = new THREE.Mesh(new THREE.CylinderGeometry(pool.r, pool.r, 0.045, 42), poolMaterial);
+    water.rotation.x = Math.PI / 2;
+    water.position.set(pool.x, 5.56, pool.z);
+    group.add(water);
+  });
+
+  const slideMaterial = new THREE.MeshStandardMaterial({ color: 0xb5ed78, roughness: 0.4, metalness: 0.02 });
+  [-0.48, 0, 0.48].forEach((x, index) => {
+    const slide = new THREE.Mesh(new THREE.TorusGeometry(0.56 + index * 0.08, 0.035, 10, 44, Math.PI * 1.45), slideMaterial);
+    slide.rotation.set(Math.PI / 2, 0.18, Math.PI * (0.08 + index * 0.18));
+    slide.position.set(x, 6.02 + index * 0.09, -0.15 + index * 0.32);
+    group.add(slide);
+  });
+
+  const wheel = new THREE.Mesh(
+    new THREE.TorusGeometry(0.42, 0.04, 12, 40),
+    new THREE.MeshStandardMaterial({ color: 0xffd34d, roughness: 0.32 })
+  );
+  wheel.rotation.y = Math.PI / 2;
+  wheel.position.set(0, 6.22, 3.75);
+  group.add(wheel);
 }
 
 function buildLiftMarkers(group, y) {

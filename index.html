@@ -3,8 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#8550A0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="PD Buddies" />
     <title>Pixie Dust Buddies | Disney Adventure · 21-25 May 2026</title>
-    <link rel="stylesheet" href="./styles.css?v=wedding-anniversary-1" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/pwa-icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/pwa-icon-192.png" />
+    <link rel="stylesheet" href="./styles.css?v=adventure-ship-render-1" />
   </head>
   <body>
     <div class="character-backdrop" id="characterBackdrop" aria-hidden="true"></div>
@@ -13,13 +19,48 @@
         <p class="eyebrow">Disney Adventure · 21-25 May 2026</p>
         <h1>Pixie Dust Buddies</h1>
       </div>
-      <nav class="tabs" aria-label="App views">
-        <button class="tab is-active" data-view="route" type="button">Route</button>
-        <button class="tab" data-view="gifts" type="button">Gifts</button>
-        <button class="tab" data-view="events" type="button">Celebration</button>
-        <button class="tab" data-view="photos" type="button">Photos</button>
-        <button class="tab" data-view="instructions" type="button">Instructions</button>
-      </nav>
+      <div class="topbar-actions">
+        <nav class="tabs" aria-label="App views">
+          <button class="tab is-active" data-view="route" type="button">Route</button>
+          <button class="tab" data-view="gifts" type="button">Gifts</button>
+          <button class="tab" data-view="events" type="button">Celebration</button>
+          <button class="tab" data-view="photos" type="button">Photos</button>
+          <button class="tab" data-view="instructions" type="button">Instructions</button>
+        </nav>
+        <div class="theme-menu">
+          <button class="hamburger-button" id="themeMenuButton" type="button" aria-expanded="false" aria-controls="themeMenuPanel" aria-label="Choose tab colour schemes" title="Choose tab colour schemes">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <div class="theme-panel" id="themeMenuPanel" hidden>
+            <div class="theme-panel-head">
+              <p class="eyebrow">Colour schemes</p>
+              <strong>Choose per tab</strong>
+            </div>
+            <label>
+              <span>Route</span>
+              <select data-theme-select="route"></select>
+            </label>
+            <label>
+              <span>Gifts</span>
+              <select data-theme-select="gifts"></select>
+            </label>
+            <label>
+              <span>Celebration</span>
+              <select data-theme-select="events"></select>
+            </label>
+            <label>
+              <span>Photos</span>
+              <select data-theme-select="photos"></select>
+            </label>
+            <label>
+              <span>Instructions</span>
+              <select data-theme-select="instructions"></select>
+            </label>
+          </div>
+        </div>
+      </div>
     </header>
 
     <main>
@@ -153,9 +194,13 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">Photo memories</p>
-            <h2>Share pixie dust moments</h2>
+            <h2>Pixie dust moments</h2>
           </div>
           <p>Add up to 5 photos per stateroom with captions. Only staterooms in the current records can add photos.</p>
+          <aside class="photo-privacy-note">
+            <strong>Who can see these photos?</strong>
+            <span>Photos are saved only in this browser on this device. Other people using the app will not see them, and they are not uploaded elsewhere.</span>
+          </aside>
         </div>
         <div class="photos-layout">
           <form class="photo-form" id="photoForm">
@@ -225,12 +270,30 @@
             </ol>
           </article>
           <article class="instruction-card">
+            <h3>Colour Schemes</h3>
+            <ol>
+              <li>Click the hamburger button in the top-right corner.</li>
+              <li>Choose a princess colour scheme for each tab from the dropdowns.</li>
+              <li>Each tab can use a different colour scheme.</li>
+              <li>Your choices are saved in this browser after refresh.</li>
+            </ol>
+          </article>
+          <article class="instruction-card">
             <h3>Data & Sharing</h3>
             <ol>
               <li>The app reads the live Google Sheet when loaded online or through the local server.</li>
               <li>Pixie Dusted status and photos are saved only in the current browser on the current device.</li>
               <li>Refreshing keeps local status and photos, but another device will have its own saved items.</li>
               <li>Update the Google Sheet to change room, gift, or event data.</li>
+            </ol>
+          </article>
+          <article class="instruction-card">
+            <h3>Install & Offline</h3>
+            <ol>
+              <li>Open the app online first so the latest files and sheet response can be cached.</li>
+              <li>Use Add to Home Screen or Install App from the mobile browser menu.</li>
+              <li>The installed app can reopen offline with cached data or the bundled backup list.</li>
+              <li>Local Pixie Dusted status, photos, and colour choices stay on that device only.</li>
             </ol>
           </article>
         </div>
@@ -243,6 +306,6 @@
     </footer>
 
     <script src="./config.js"></script>
-    <script src="./app.js?v=wedding-anniversary-1"></script>
+    <script src="./app.js?v=adventure-ship-render-1"></script>
   </body>
 </html>

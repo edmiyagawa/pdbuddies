@@ -15,7 +15,40 @@ const state = {
   delivered: readSet("pd-delivered"),
   found: readSet("pd-found"),
   photos: [],
+  tabThemes: readJson("pd-tab-themes", {
+    route: "rapunzel",
+    gifts: "elsa",
+    events: "snow-white",
+    photos: "ariel",
+    instructions: "anna",
+  }),
 };
+
+const TAB_LABELS = {
+  route: "Route",
+  gifts: "Gifts",
+  events: "Celebration",
+  photos: "Photos",
+  instructions: "Instructions",
+};
+
+const COLOUR_SCHEMES = [
+  { key: "snow-white", name: "Snow White", colors: ["#E34B62", "#8AC0E5", "#0A64A5", "#FFEB94", "#FFCA35"], ink: "#123653" },
+  { key: "cinderella", name: "Cinderella", colors: ["#EAF2FA", "#DCEBF6", "#B9DDEE", "#7FB8DD", "#286387"], ink: "#244a67" },
+  { key: "tinkerbell", name: "Tinkerbell", colors: ["#FFF9B6", "#F5F2A4", "#C3D798", "#719842", "#456F48"], ink: "#314e36" },
+  { key: "aurora", name: "Aurora", colors: ["#F7D2E4", "#F4A4C7", "#E36E9A", "#D24A7A", "#F8C94B"], ink: "#723452" },
+  { key: "ariel", name: "Ariel", colors: ["#A497C4", "#594597", "#C6E8BE", "#53B288", "#378D68"], ink: "#243f38" },
+  { key: "belle", name: "Belle", colors: ["#FFF8C6", "#FFEFA6", "#FAD96B", "#E8B13E", "#B08A44"], ink: "#5a4100" },
+  { key: "jasmine", name: "Jasmine", colors: ["#C5F1E8", "#91D9D2", "#5FB9C0", "#1FA3B9", "#F9CD4B"], ink: "#164f58" },
+  { key: "pocahontas", name: "Pocahontas", colors: ["#A88091", "#F2E3C8", "#F2C46C", "#D64740", "#9C4E28"], ink: "#4f2f28" },
+  { key: "mulan", name: "Mulan", colors: ["#FFF3B8", "#BFD999", "#97A977", "#314E68", "#7C4DAA"], ink: "#273d4d" },
+  { key: "tiana", name: "Tiana", colors: ["#F0F4D2", "#D5E6BC", "#BBD69F", "#86AA6A", "#526A4C"], ink: "#31492d" },
+  { key: "rapunzel", name: "Rapunzel", colors: ["#FADEE4", "#DAAFD2", "#9C8CBD", "#A06BAF", "#8550A0"], ink: "#3e2555" },
+  { key: "merida", name: "Merida", colors: ["#C58C66", "#953B27", "#173642", "#071720", "#010608"], ink: "#173642" },
+  { key: "elsa", name: "Elsa", colors: ["#D5D9EA", "#86B3CB", "#82D4ED", "#3ABAE3", "#0C77A8"], ink: "#0d3954" },
+  { key: "anna", name: "Anna", colors: ["#A42384", "#7DBBB0", "#1D318B", "#1E1A62", "#050A0A"], ink: "#050a0a" },
+  { key: "moana", name: "Moana", colors: ["#A6D9CA", "#F0DDB8", "#D7A47A", "#A74D37", "#3F201B"], ink: "#3f201b" },
+];
 
 const CHARACTER_SPRITES = [
   "snow-white",
@@ -85,6 +118,7 @@ const labels = {
   animals: "Zootopia",
   parks: "Disney Parks & Cruise",
   flexible: "Surprise Me!",
+  doorSurprise: "Surprise!",
   birthday: "Birthday",
   first: "First cruise",
   castaway: "Castaway Club",
@@ -382,9 +416,12 @@ let ship3dModule = null;
 init();
 
 async function init() {
+  registerServiceWorker();
   renderCharacterBackdrop();
   cacheEls();
   syncViewFromHash();
+  hydrateThemeMenu();
+  applyTabThemes();
   state.data = await loadAppData();
   state.photos = await loadPhotos();
   hydrateControls();
@@ -392,11 +429,22 @@ async function init() {
   render();
 }
 
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  if (!["http:", "https:"].includes(window.location.protocol)) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch((error) => {
+      console.warn("Pixie Dust Buddies offline cache could not be registered.", error);
+    });
+  });
+}
+
 function syncViewFromHash() {
   const hashView = String(window.location.hash || "").replace(/^#/, "").replace(/View$/, "");
   if (["route", "gifts", "events", "photos", "instructions"].includes(hashView)) {
     state.view = hashView;
   }
+  document.body.dataset.view = state.view;
   document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("is-active", tab.dataset.view === state.view));
   document.querySelectorAll(".view").forEach((view) => view.classList.toggle("is-visible", view.id === `${state.view}View`));
 }
@@ -412,8 +460,7 @@ function renderCharacterBackdrop() {
     const top = 4 + Math.random() * 92;
     const width = isLineup ? 76 + Math.random() * 44 : 118 + Math.random() * 110;
     const rotation = -16 + Math.random() * 32;
-    const opacity = isLineup ? 0.11 + Math.random() * 0.06 : 0.16 + Math.random() * 0.09;
-    return `<img class="${isLineup ? "is-lineup" : ""}" src="./assets/characters/${name}.png" alt="" loading="lazy" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;--sprite-width:${width.toFixed(0)}px;--sprite-rotation:${rotation.toFixed(2)}deg;--sprite-opacity:${opacity.toFixed(3)};animation-delay:${(-index * 0.3).toFixed(1)}s" />`;
+    return `<img class="${isLineup ? "is-lineup" : ""}" src="./assets/characters/${name}.png" alt="" loading="lazy" style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;--sprite-width:${width.toFixed(0)}px;--sprite-rotation:${rotation.toFixed(2)}deg;animation-delay:${(-index * 0.3).toFixed(1)}s" />`;
   }).join("");
 }
 
@@ -471,6 +518,7 @@ function withPreferredCharacterCategories(data) {
     return {
       ...record,
       families: families.length ? families : [...(record.families || [])].filter((key) => CHARACTER_FAMILIES.some((family) => family.key === key)),
+      doorThemes: classifyDoorThemes(record.doorTheme),
       events: normalizeCelebrationKeys(record.events || []),
     };
   });
@@ -642,6 +690,7 @@ function normalizeSheetRecord(row, id, families, fallbackByRoom = new Map()) {
   const fallbackRecord = fallbackByRoom.get(String(room)) || {};
   const familyKeys = classifyFamilies(preferred, families);
   const eventKeys = classifyEvents(eventsText);
+  const doorThemeKeys = classifyDoorThemes(doorTheme);
 
   return {
     id,
@@ -652,6 +701,7 @@ function normalizeSheetRecord(row, id, families, fallbackByRoom = new Map()) {
     eventsText: "",
     doorTheme,
     families: familyKeys.length ? familyKeys : [...(fallbackRecord.families || [])],
+    doorThemes: doorThemeKeys.length ? doorThemeKeys : [...(fallbackRecord.doorThemes || [])],
     events: eventKeys.length ? eventKeys : [...(fallbackRecord.events || [])],
     delivered: false,
     found: false,
@@ -714,6 +764,13 @@ function classifyFamilies(text, families) {
   return families
     .filter((family) => family.terms.some((term) => includesTerm(haystack, term)))
     .map((family) => family.key);
+}
+
+function classifyDoorThemes(text) {
+  const value = String(text || "").trim();
+  if (!value) return [];
+  const categories = classifyFamilies(value, CHARACTER_FAMILIES);
+  return categories.length ? categories : ["doorSurprise"];
 }
 
 function classifyEvents(text) {
@@ -820,9 +877,132 @@ function cacheEls() {
     "ship3dStatus",
     "resetShip3dButton",
     "printButton",
+    "themeMenuButton",
+    "themeMenuPanel",
   ].forEach((id) => {
     els[id] = document.getElementById(id);
   });
+}
+
+function hydrateThemeMenu() {
+  const options = COLOUR_SCHEMES
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((scheme) => `<option value="${scheme.key}">${scheme.name}</option>`)
+    .join("");
+  document.querySelectorAll("[data-theme-select]").forEach((select) => {
+    const tab = select.dataset.themeSelect;
+    select.innerHTML = options;
+    select.value = state.tabThemes[tab] || defaultThemeForTab(tab);
+  });
+}
+
+function defaultThemeForTab(tab) {
+  return {
+    route: "rapunzel",
+    gifts: "elsa",
+    events: "snow-white",
+    photos: "ariel",
+    instructions: "anna",
+  }[tab] || "rapunzel";
+}
+
+function applyTabThemes() {
+  Object.keys(TAB_LABELS).forEach((tab) => applyTabTheme(tab));
+  const current = getScheme(state.tabThemes[state.view] || defaultThemeForTab(state.view));
+  document.body.style.setProperty("--active-tab-color", current.colors[4]);
+  document.body.style.setProperty("--active-tab-rgb", hexToRgb(current.colors[4]).join(", "));
+}
+
+function applyTabTheme(tab) {
+  const view = document.getElementById(`${tab}View`);
+  if (!view) return;
+  const scheme = getScheme(state.tabThemes[tab] || defaultThemeForTab(tab));
+  const [soft, mid, accent, primary, deep] = scheme.colors;
+  view.dataset.scheme = scheme.key;
+  setThemeVar(view, tab, "soft-rgb", soft);
+  setThemeVar(view, tab, "mid-rgb", mid);
+  setThemeVar(view, tab, "accent-rgb", accent);
+  setThemeVar(view, tab, "primary-rgb", deep);
+  setViewSpecificThemeVars(view, tab, scheme);
+}
+
+function setViewSpecificThemeVars(view, tab, scheme) {
+  const [soft, mid, accent, primary, deep] = scheme.colors;
+  const ink = scheme.ink || deep;
+  if (tab === "route") {
+    setVars(view, {
+      "--route-cream": "#fffdfd",
+      "--route-blush": soft,
+      "--route-mauve": mid,
+      "--route-lavender": accent,
+      "--route-orchid": primary,
+      "--route-plum": deep,
+      "--route-ink": ink,
+      "--route-shadow": `0 16px 36px rgba(${hexToRgb(deep).join(", ")}, 0.16)`,
+    });
+  }
+  if (tab === "gifts") {
+    setVars(view, {
+      "--gifts-ice": soft,
+      "--gifts-frost": mid,
+      "--gifts-snow": accent,
+      "--gifts-aqua": primary,
+      "--gifts-deep": deep,
+      "--gifts-ink": ink,
+      "--gifts-shadow": `0 16px 36px rgba(${hexToRgb(deep).join(", ")}, 0.14)`,
+    });
+  }
+  if (tab === "events") {
+    setVars(view, {
+      "--events-red": primary,
+      "--events-sky": mid,
+      "--events-blue": deep,
+      "--events-cream": soft,
+      "--events-gold": accent,
+      "--events-ink": ink,
+    });
+  }
+  if (tab === "photos") {
+    setVars(view, {
+      "--photos-lavender": soft,
+      "--photos-purple": primary,
+      "--photos-seafoam": mid,
+      "--photos-green": accent,
+      "--photos-deep": deep,
+      "--photos-ink": ink,
+    });
+  }
+  if (tab === "instructions") {
+    setVars(view, {
+      "--instructions-magenta": primary,
+      "--instructions-teal": mid,
+      "--instructions-blue": accent,
+      "--instructions-violet": deep,
+      "--instructions-black": ink,
+      "--instructions-ink": ink,
+    });
+  }
+}
+
+function setThemeVar(node, tab, name, color) {
+  node.style.setProperty(`--${tab}-${name}`, hexToRgb(color).join(", "));
+}
+
+function setVars(node, vars) {
+  Object.entries(vars).forEach(([name, value]) => node.style.setProperty(name, value));
+}
+
+function getScheme(key) {
+  return COLOUR_SCHEMES.find((scheme) => scheme.key === key) || COLOUR_SCHEMES[0];
+}
+
+function hexToRgb(hex) {
+  const value = String(hex || "#000000").replace("#", "");
+  const normalized = value.length === 3
+    ? value.split("").map((char) => `${char}${char}`).join("")
+    : value.padEnd(6, "0").slice(0, 6);
+  return [0, 2, 4].map((index) => parseInt(normalized.slice(index, index + 2), 16));
 }
 
 function hydrateControls() {
@@ -836,12 +1016,13 @@ function hydrateControls() {
     ...state.data.families.map((family) => `<option value="${family.key}">${family.name}</option>`),
   ].join("");
 
+  const hasTbdSection = state.data.records.some((record) => roomLocation(record).section === "TBD");
   els.sectionFilter.innerHTML = [
     `<option value="all">All sections</option>`,
     `<option value="FWD">FWD</option>`,
     `<option value="MID">MID</option>`,
     `<option value="AFT">AFT</option>`,
-    `<option value="TBD">TBD</option>`,
+    ...(hasTbdSection ? [`<option value="TBD">TBD</option>`] : []),
   ].join("");
 
   const typeOptions = [
@@ -906,9 +1087,40 @@ function bindEvents() {
       document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("is-active", tab === button));
       document.querySelectorAll(".view").forEach((view) => view.classList.remove("is-visible"));
       document.getElementById(`${state.view}View`).classList.add("is-visible");
+      document.body.dataset.view = state.view;
+      applyTabThemes();
       history.replaceState(null, "", `#${state.view}View`);
       render();
     });
+  });
+
+  els.themeMenuButton.addEventListener("click", () => {
+    const isOpen = !els.themeMenuPanel.hidden;
+    els.themeMenuPanel.hidden = isOpen;
+    els.themeMenuButton.setAttribute("aria-expanded", String(!isOpen));
+  });
+
+  document.querySelectorAll("[data-theme-select]").forEach((select) => {
+    select.addEventListener("change", (event) => {
+      const tab = event.target.dataset.themeSelect;
+      state.tabThemes[tab] = event.target.value;
+      writeJson("pd-tab-themes", state.tabThemes);
+      applyTabThemes();
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (els.themeMenuPanel.hidden) return;
+    if (event.target.closest(".theme-menu")) return;
+    els.themeMenuPanel.hidden = true;
+    els.themeMenuButton.setAttribute("aria-expanded", "false");
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || els.themeMenuPanel.hidden) return;
+    els.themeMenuPanel.hidden = true;
+    els.themeMenuButton.setAttribute("aria-expanded", "false");
+    els.themeMenuButton.focus();
   });
 
   els.searchInput.addEventListener("input", (event) => {
@@ -1014,13 +1226,16 @@ function render() {
 }
 
 function renderMetrics() {
-  const delivered = state.delivered.size;
-  const found = state.found.size;
+  const total = state.data.meta.entryCount;
+  const delivered = state.data.records.filter((record) => state.delivered.has(String(record.id))).length;
+  const remainingRecords = state.data.records.filter((record) => !state.delivered.has(String(record.id)));
+  const remaining = Math.max(0, total - delivered);
+  const progress = total ? Math.round((delivered / total) * 100) : 0;
   els.heroMetrics.innerHTML = [
-    metric(state.data.meta.entryCount, "stateroom entries"),
-    metric(state.data.meta.withDoorThemes, "door themes captured"),
-    metric(sectionCountsLabel(state.data.records), "FWD / MID / AFT stops"),
     metric(`${delivered}/${state.data.meta.entryCount}`, "Pixie Dusted"),
+    metric(remaining, "remaining rooms"),
+    metric(`${progress}%`, "completion"),
+    metric(sectionCountsLabel(remainingRecords), "remaining FWD / MID / AFT"),
   ].join("");
 }
 
@@ -1053,7 +1268,7 @@ function renderRouteQuickFilters(records) {
   const themeKeys = visibleKeys(records, (record) => record.families, state.data.families.map((family) => family.key));
   const celebrationKeys = visibleKeys(records, (record) => record.events, CELEBRATION_ORDER);
   els.routeQuickFilters.innerHTML = `
-    ${routeFilterGroup("Theme", "theme", state.routeTheme, themeKeys, (key) => routeFilterCount(records, "theme", key))}
+    ${routeFilterGroup("Character", "theme", state.routeTheme, themeKeys, (key) => routeFilterCount(records, "theme", key))}
     ${routeFilterGroup("Celebration", "celebration", state.routeCelebration, celebrationKeys, (key) => routeFilterCount(records, "celebration", key))}
   `;
   els.routeQuickFilters.querySelectorAll("[data-route-filter-type]").forEach((button) => {
@@ -1067,7 +1282,7 @@ function renderRouteQuickFilters(records) {
 }
 
 function routeFilterGroup(title, type, active, keys, countForKey) {
-  const allLabel = type === "theme" ? "All themes" : "All celebrations";
+  const allLabel = type === "theme" ? "All characters" : "All celebrations";
   return `
     <section class="route-filter-group">
       <div class="route-filter-title">${title}</div>
@@ -1186,11 +1401,23 @@ function routeCard(record) {
           Pixie Dusted
         </button>
       </div>
-      <div class="badges">${badges([...record.families, ...record.events])}</div>
-      <p class="card-line"><strong>Theme:</strong> ${escapeHtml(themeCue(record))}</p>
-      <p class="subtext"><strong>Celebration:</strong> ${escapeHtml(eventCue(record))}</p>
-      <p class="subtext"><strong>Door theme:</strong> ${escapeHtml(record.doorTheme || "No door theme listed")}</p>
+      ${routeCardPills("Character", record.families, "No character tagged")}
+      ${routeCardPills("Celebration", record.events, "No celebration tagged")}
+      ${routeCardPills("Door theme", record.doorThemes || [], "No door theme listed")}
     </article>
+  `;
+}
+
+function routeCardPills(label, keys, emptyLabel) {
+  return `
+    <div class="route-card-pills">
+      <strong>${escapeHtml(label)}:</strong>
+      <div class="route-filter-chips">
+        ${keys.length
+          ? keys.map((key) => `<span class="route-filter-chip is-active"><span>${escapeHtml(labels[key] || key)}</span></span>`).join("")
+          : `<span class="route-filter-chip"><span>${escapeHtml(emptyLabel)}</span></span>`}
+      </div>
+    </div>
   `;
 }
 
@@ -1236,14 +1463,11 @@ function renderGifts() {
     `<button class="kit kit-filter ${state.family === "all" ? "is-active" : ""}" data-gift-family="all" type="button" style="--kit-color:var(--gifts-deep)">
       <p class="eyebrow">All categories</p>
       <div class="kit-count"><strong>${filteredRecordsByFamily("all").length}</strong><span>rooms</span></div>
-      <p class="subtext">Show every visible packing slip across all preferred-character categories.</p>
-      <ul><li>Reset the gift category filter</li><li>Keep deck, section, and search filters active</li></ul>
     </button>`,
     ...state.data.giftKits.map((kit) => `
     <button class="kit kit-filter ${state.family === kit.key ? "is-active" : ""}" data-gift-family="${kit.key}" type="button" style="--kit-color:${kit.accent}">
       <p class="eyebrow">${kit.name}</p>
-      <div class="kit-count"><strong>${kit.suggestedQuantity}</strong><span>pack</span></div>
-      <ul>${kit.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      <div class="kit-count"><strong>${kit.suggestedQuantity}</strong><span>rooms</span></div>
     </button>
   `),
   ].join("");
@@ -1315,6 +1539,12 @@ function eventCue(record) {
     : "No celebration tagged";
 }
 
+function doorThemeCue(record) {
+  return (record.doorThemes || []).length
+    ? record.doorThemes.map((key) => labels[key] || key).join(", ")
+    : "No door theme listed";
+}
+
 function renderEvents() {
   const records = filteredRecords();
   const eventKeys = visibleKeys(records, (record) => record.events, CELEBRATION_ORDER);
@@ -1336,13 +1566,11 @@ function renderEvents() {
     `<button class="event-summary-card event-filter ${state.event === "all" ? "is-active" : ""}" data-event-filter="all" type="button" style="--event-accent:var(--events-blue)">
       <p class="eyebrow">All celebrations</p>
       <div class="kit-count"><strong>${allEventRooms}</strong><span>rooms</span></div>
-      <p class="subtext">Show every visible room with celebration tags.</p>
     </button>`,
     ...eventRecords.map((group) => `
     <button class="event-summary-card event-filter ${state.event === group.key ? "is-active" : ""}" data-event-filter="${group.key}" type="button" style="--event-accent:${group.accent}">
       <p class="eyebrow">${escapeHtml(group.label)}</p>
       <div class="kit-count"><strong>${group.records.length}</strong><span>rooms</span></div>
-      <p class="subtext">${eventBoosterLine(group.key)}</p>
     </button>
   `),
   ].join("");
@@ -1560,7 +1788,7 @@ async function renderShip3D() {
     <h3>Loading 3D ship</h3>
     <p class="subtext">Building decks and rooms from the current filters.</p>
   `;
-  ship3dModule ||= await import("./ship3d.js?v=rapunzel-route-2");
+  ship3dModule ||= await import("./ship3d.js?v=adventure-ship-render-1");
   ship3dModule.renderShip3D({
     mount: els.ship3dMount,
     status: els.ship3dStatus,
@@ -1968,7 +2196,7 @@ function filteredRecords({ includeRouteFilters = false } = {}) {
 function matchesQuery(record) {
   if (!state.query) return true;
   const location = roomLocation(record);
-  const safeTags = [...record.families, ...record.events].map((key) => labels[key] || key);
+  const safeTags = [...record.families, ...(record.doorThemes || []), ...record.events].map((key) => labels[key] || key);
   return [record.room, record.doorTheme, record.deck, location.section, location.zone, ...safeTags]
     .join(" ")
     .toLowerCase()
@@ -2102,6 +2330,18 @@ function readSet(key) {
 
 function writeSet(key, set) {
   localStorage.setItem(key, JSON.stringify([...set]));
+}
+
+function readJson(key, fallback) {
+  try {
+    return { ...fallback, ...JSON.parse(localStorage.getItem(key) || "{}") };
+  } catch {
+    return { ...fallback };
+  }
+}
+
+function writeJson(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
 }
 
 function clamp(value, min, max) {
